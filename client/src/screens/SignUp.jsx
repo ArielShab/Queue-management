@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import InputField from '../components/general/InputField';
 import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
 import { createUser } from '../api/usersApi';
+import { useNavigate } from 'react-router-dom';
 
 function SignUp() {
 	const [fieldsValues, setFieldsValues] = useState({
@@ -12,6 +13,7 @@ function SignUp() {
 		phone: '',
 	});
 	const [fieldsErrors, setFieldsErrors] = useState({});
+	const navigate = useNavigate();
 
 	const handleFieldChange = (id, value) => {
 		const temp = { ...fieldsValues };
@@ -33,6 +35,13 @@ function SignUp() {
 			const response = await createUser(fieldsValues);
 
 			console.log('User created successfully:', response.data);
+
+			// Store the user's email in localStorage and a flag indicating they are at step 2
+			localStorage.setItem('step', 'verification');
+			localStorage.setItem('email', fieldsValues.email); // Store the email
+			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+			localStorage.setItem('codeExpiration', expiresAt);
+			navigate('/sign-in');
 		} catch (error) {
 			console.error('Error creating user:', error);
 		}

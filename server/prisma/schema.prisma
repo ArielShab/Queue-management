@@ -14,16 +14,17 @@ datasource db {
 }
 
 model User {
-    id        Int      @id @default(autoincrement())
-    firstName String
-    lastName  String
-    email     String   @unique
-    phone     String?
-    tempCode  String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    Service   Service?
-    Queue     Queue?
+    id               Int       @id @default(autoincrement())
+    firstName        String
+    lastName         String
+    email            String    @unique
+    phone            String?
+    verificationCode String?
+    codeExpiration   DateTime?
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @updatedAt
+    Service          Service?
+    Queue            Queue?
 }
 
 model Service {
