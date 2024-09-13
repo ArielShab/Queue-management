@@ -2,6 +2,7 @@ import { Container, Stack, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
 import InputField from '../components/general/InputField';
+import { loginUser } from '../api/usersApi';
 
 function SignIn() {
 	const [email, setEmail] = useState('');
@@ -11,7 +12,7 @@ function SignIn() {
 		setEmail(value);
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
@@ -23,6 +24,17 @@ function SignIn() {
 			errors.email = 'Email Invalid email';
 		}
 		setFieldsErrors(errors);
+
+		// If there are validation errors, stop the submission
+		if (Object.keys(errors).length) return;
+
+		try {
+			const response = await loginUser({ email: email });
+
+			console.log('User created successfully:', response.data);
+		} catch (error) {
+			console.error('Error creating user:', error);
+		}
 	};
 
 	return (
