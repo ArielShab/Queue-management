@@ -5,11 +5,15 @@ import bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 const saltRounds = 10;
 
+// Generate random 6-digit code
+const generateCode = () =>
+	Math.floor(100000 + Math.random() * 900000).toString();
+
 export const createUser = async (req, res) => {
 	const data = { ...req.body };
 
 	// Generate a 6-digit random code
-	const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+	const randomCode = generateCode();
 
 	bcrypt.genSalt(saltRounds, (err, salt) => {
 		if (err) {
@@ -59,7 +63,13 @@ export const loginUser = async (req, res) => {
 	}
 
 	// Generate a 6-digit random code
-	const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+	const randomCode = generateCode();
+	const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes from now
+
+	await prisma.user.update({
+		where: { email },
+		data: { verificationCode: code, codeExpiresAt: expiresAt },
+	});
 
 	bcrypt.genSalt(saltRounds, (err, salt) => {
 		if (err) {
