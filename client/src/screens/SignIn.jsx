@@ -1,8 +1,10 @@
+import React, { useContext, useEffect, useState } from 'react';
 import { Container, Stack, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
 import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
 import InputField from '../components/general/InputField';
 import { loginUser, verifyCode } from '../api/usersApi';
+import { jwtDecode } from 'jwt-decode';
+import { UserContext } from '../context/userContext';
 
 function SignIn() {
 	const [fieldsErrors, setFieldsErrors] = useState({});
@@ -11,6 +13,7 @@ function SignIn() {
 	const [step, setStep] = useState(1);
 	const [error, setError] = useState('');
 	const [timer, setTimer] = useState(300); // 5-minute timer in seconds
+	const { setLoggedUser } = useContext(UserContext);
 
 	const handleFieldChange = (id, value) => {
 		if (id === 'email') setEmail(value);
@@ -52,7 +55,6 @@ function SignIn() {
 					});
 				}, 1000);
 			} else {
-				console.log('response', response);
 			}
 		} catch (error) {
 			setError('Invalid email or password');
@@ -67,19 +69,45 @@ function SignIn() {
 				email,
 				code: verificationCode,
 			});
-			const { token, user } = response.data;
+			const { token } = response.data;
 
-			localStorage.setItem('token', token);
-			localStorage.setItem('user', JSON.stringify(user));
 			localStorage.removeItem('step');
 			localStorage.removeItem('email');
 			localStorage.removeItem('codeExpiration');
+			localStorage.setItem('token', token);
+
+			setLoggedUser(jwtDecode(token));
 
 			alert('login succesful');
 
 			// Redirect to the logged-in area (dashboard, etc.)
 		} catch (err) {
 			setError('Invalid or expired code');
+		}
+	};
+
+	const resendCode = async () => {
+		try {
+			const response = await loginUser({ email: email });
+
+			if (response.status === 200) {
+				// Store the user's email in localStorage and a flag indicating they are at step 2
+				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+				localStorage.setItem('codeExpiration', expiresAt);
+				setTimer(300);
+				setError('');
+
+				// Start the countdown timer
+				const interval = setInterval(() => {
+					setTimer((prev) => {
+						if (prev <= 1) clearInterval(interval);
+						return prev - 1;
+					});
+				}, 1000);
+			} else {
+			}
+		} catch (error) {
+			setError('Invalid email or password');
 		}
 	};
 
@@ -103,6 +131,7 @@ function SignIn() {
 			return;
 		} else {
 			setStep(2);
+			setEmail(localStorage.getItem('email'));
 		}
 
 		const remainingTime = Math.floor((expiration - currentTime) / 1000);
@@ -110,10 +139,18 @@ function SignIn() {
 
 		const interval = setInterval(() => {
 			setTimer((prev) => {
-				if (prev <= 1) clearInterval(interval);
+				if (prev <= 1) {
+					clearInterval(interval);
+					return 0;
+				}
 				return prev - 1;
 			});
 		}, 1000);
+
+		// Cleanup interval when component unmounts or re-renders
+		return () => {
+			clearInterval(interval);
+		};
 	}, []);
 
 	return (
@@ -163,7 +200,12 @@ function SignIn() {
 								{(timer % 60).toString().padStart(2, '0')}
 							</Typography>
 						) : (
-							<Typography>Code expired</Typography>
+							<>
+								<Typography>Code expired</Typography>
+								<button onClick={resendCode}>
+									Resend Code
+								</button>
+							</>
 						)}
 						{error && <p>{error}</p>}
 					</StyledSignUpForm>

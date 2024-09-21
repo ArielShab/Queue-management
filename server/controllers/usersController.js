@@ -21,15 +21,16 @@ export const createUser = async (req, res) => {
 		const salt = await bcrypt.genSalt(saltRounds);
 		const hash = await bcrypt.hash(randomCode, salt);
 
+		console.log('randomCode', randomCode);
+
 		data.verificationCode = hash;
+		// data.verificationCode = randomCode;
 		data.codeExpiration = expiresAt;
 
 		// Create a new user in the database
 		const user = await prisma.user.create({
 			data: data,
 		});
-
-		console.log('randomCode', randomCode);
 
 		res.status(201).json({ success: true, data: user.email });
 	} catch (error) {
@@ -78,7 +79,10 @@ export const loginUser = async (req, res) => {
 				console.log('randomCode', randomCode);
 				await prisma.user.update({
 					where: { email },
-					data: { verificationCode: hash, codeExpiration: expiresAt },
+					data: {
+						verificationCode: hash,
+						codeExpiration: expiresAt,
+					},
 				});
 
 				res.status(200).json({
@@ -127,7 +131,7 @@ export const verifyLoginCode = async (req, res) => {
 		);
 
 		// Return the token and user data
-		res.json({ token, user: { id: user.id, email: user.email } });
+		res.json({ token });
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({
