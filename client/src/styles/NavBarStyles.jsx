@@ -1,4 +1,4 @@
-import { Box, Container, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { styled } from '@mui/system';
 
 export const StyledLinksWrapper = styled(Stack)(({ theme }) => ({

@@ -1,9 +1,13 @@
 import { Container, Stack, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import InputField from '../components/general/InputField';
 import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
 import { createUser } from '../api/usersApi';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { UserContext } from '../context/userContext';
+import { useMutation } from '@tanstack/react-query';
+import MainTitle from '../components/general/MainTitle';
 
 function SignUp() {
 	const [fieldsValues, setFieldsValues] = useState({
@@ -13,7 +17,23 @@ function SignUp() {
 		phone: '',
 	});
 	const [fieldsErrors, setFieldsErrors] = useState({});
+	const { setLoggedUser } = useContext(UserContext);
 	const navigate = useNavigate();
+
+	const createUserMutation = useMutation({
+		mutationFn: createUser,
+		onSuccess: (data, body, context) => {
+			// Store the user's email in localStorage and a flag indicating they are at step 2
+			localStorage.setItem('step', 'verification');
+			localStorage.setItem('email', data.data); // Store the email
+			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+			localStorage.setItem('codeExpiration', expiresAt);
+			navigate('/sign-in');
+		},
+		onError: (error, body, context) => {
+			console.error('Error creating user', error);
+		},
+	});
 
 	const handleFieldChange = (id, value) => {
 		const temp = { ...fieldsValues };
@@ -31,20 +51,7 @@ function SignUp() {
 		// If there are validation errors, stop the submission
 		if (Object.keys(errors).length) return;
 
-		try {
-			const response = await createUser(fieldsValues);
-
-			console.log('User created successfully:', response.data);
-
-			// Store the user's email in localStorage and a flag indicating they are at step 2
-			localStorage.setItem('step', 'verification');
-			localStorage.setItem('email', fieldsValues.email); // Store the email
-			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-			localStorage.setItem('codeExpiration', expiresAt);
-			navigate('/sign-in');
-		} catch (error) {
-			console.error('Error creating user:', error);
-		}
+		createUserMutation.mutate(fieldsValues);
 	};
 
 	const validate = (values) => {
@@ -71,11 +78,22 @@ function SignUp() {
 		return errors;
 	};
 
+	useEffect(() => {
+		// Check if user if logged in
+		const token = localStorage.getItem('token');
+
+		if (token) {
+			const decodedToken = jwtDecode(token);
+			setLoggedUser(decodedToken);
+
+			if (decodedToken.id) navigate('/');
+		}
+	}, []);
+
 	return (
 		<Container>
-			<Typography component='h1' variant='h1' marginBlock='20px'>
-				Sign Up
-			</Typography>
+			<MainTitle title='Sign Up' />
+
 			<StyledSignUpForm onSubmit={handleSubmit}>
 				<InputField
 					label='First name'

@@ -32,7 +32,8 @@ export const createUser = async (req, res) => {
 			data: data,
 		});
 
-		res.status(201).json({ success: true, data: user.email });
+		if (user) res.status(201).json(user.email);
+		else res.status(401).json("Couldn't create user");
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({
@@ -85,9 +86,7 @@ export const loginUser = async (req, res) => {
 					},
 				});
 
-				res.status(200).json({
-					message: 'Verification code sent to your email',
-				});
+				res.status(200).json('Verification code sent to your email');
 			});
 		});
 	} catch (error) {
@@ -109,18 +108,18 @@ export const verifyLoginCode = async (req, res) => {
 		});
 
 		if (!user) {
-			return res.status(401).json({ message: 'Invalid email or code' });
+			return res.status(401).json('Invalid email or code');
 		}
 
 		const isCodeValid = await bcrypt.compare(code, user.verificationCode);
 
 		if (!isCodeValid) {
-			return res.status(401).json({ message: 'Invalid code' });
+			return res.status(401).json('Invalid code');
 		}
 
 		// Check if the code is expired
 		if (new Date() > user.codeExpiration) {
-			return res.status(401).json({ message: 'Code has expired' });
+			return res.status(401).json('Code has expired');
 		}
 
 		// Generate a JWT token after successful verification
@@ -131,9 +130,85 @@ export const verifyLoginCode = async (req, res) => {
 		);
 
 		// Return the token and user data
-		res.json({ token });
+		res.status(200).json(token);
 	} catch (error) {
 		console.error(error);
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
+// export const getUserById = async (req, res) => {
+// 	const { id } = req.query;
+
+// 	try {
+// 		// Fetch user
+// 		const user = await prisma.user.findUnique({
+// 			where: { id: +id },
+// 		});
+
+// 		if (!user) {
+// 			return res.status(401).json({ message: 'Invalid user id' });
+// 		}
+
+// 		res.status(200).json({
+// 			firstName: user.firstName,
+// 			lastName: user.lastName,
+// 			email: user.email,
+// 			phone: user.phone,
+// 			queueDuration: user.queueDuration,
+// 		});
+// 	} catch (error) {
+// 		console.error(error);
+// 		res.status(500).json({
+// 			success: false,
+// 			message: 'Internal server error',
+// 		});
+// 	}
+// };
+
+export const getUserPersonalData = async (req, res) => {
+	const { id } = req.query;
+
+	try {
+		const user = await prisma.user.findUnique({ where: { id: +id } });
+
+		if (!user) return res.status(401).json({ message: 'Invalid user id' });
+
+		return res.status(200).json({
+			id: user.id,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			email: user.email,
+			phone: user.phone,
+			queueDuration: user.queueDuration,
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
+export const updateUserData = async (req, res) => {
+	// const { id } = req.query;
+	console.log('req.body', req.body);
+
+	try {
+		// const user = await prisma.user.findUnique({ where: { id: +id } });
+		// if (!user) return res.status(401).json({ message: 'Invalid user id' });
+		// return res.status(200).json({
+		// 	id: user.id,
+		// 	firstName: user.firstName,
+		// 	lastName: user.lastName,
+		// 	email: user.email,
+		// 	phone: user.phone,
+		// 	queueDuration: user.queueDuration,
+		// });
+	} catch (error) {
 		res.status(500).json({
 			success: false,
 			message: 'Internal server error',

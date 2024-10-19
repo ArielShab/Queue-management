@@ -5,6 +5,9 @@ import InputField from '../components/general/InputField';
 import { loginUser, verifyCode } from '../api/usersApi';
 import { jwtDecode } from 'jwt-decode';
 import { UserContext } from '../context/userContext';
+import { useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
+import MainTitle from '../components/general/MainTitle';
 
 function SignIn() {
 	const [fieldsErrors, setFieldsErrors] = useState({});
@@ -14,6 +17,75 @@ function SignIn() {
 	const [error, setError] = useState('');
 	const [timer, setTimer] = useState(300); // 5-minute timer in seconds
 	const { setLoggedUser } = useContext(UserContext);
+	const navigate = useNavigate();
+
+	const loginUserMutation = useMutation({
+		mutationFn: loginUser,
+		onSuccess: (data, body, context) => {
+			setStep(2);
+			// Store the user's email in localStorage and a flag indicating they are at step 2
+			localStorage.setItem('step', 'verification');
+			localStorage.setItem('email', email); // Store the email
+			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+			localStorage.setItem('codeExpiration', expiresAt);
+			// Start the countdown timer
+			const interval = setInterval(() => {
+				setTimer((prev) => {
+					if (prev <= 1) clearInterval(interval);
+					return prev - 1;
+				});
+			}, 1000);
+		},
+		onError: (error, body, context) => {
+			setError('Invalid email or password');
+			console.error('Invalid email or password', error);
+		},
+	});
+
+	const verifyCodeMutation = useMutation({
+		mutationFn: verifyCode,
+		onSuccess: (data, body, context) => {
+			const token = data.data;
+
+			localStorage.removeItem('step');
+			localStorage.removeItem('email');
+			localStorage.removeItem('codeExpiration');
+			localStorage.setItem('token', token);
+
+			setLoggedUser(jwtDecode(token));
+
+			alert('login succesful');
+
+			// Redirect to the logged-in area (dashboard, etc.)
+			navigate('/');
+		},
+		onError: (error, body, context) => {
+			setError('Invalid or expired code');
+			console.error('Invalid or expired code', error);
+		},
+	});
+
+	const resendCodeMutation = useMutation({
+		mutationFn: loginUser,
+		onSuccess: (data, body, context) => {
+			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+			localStorage.setItem('codeExpiration', expiresAt);
+			setTimer(300);
+			setError('');
+
+			// Start the countdown timer
+			const interval = setInterval(() => {
+				setTimer((prev) => {
+					if (prev <= 1) clearInterval(interval);
+					return prev - 1;
+				});
+			}, 1000);
+		},
+		onError: (error, body, context) => {
+			setError('Invalid email or password');
+			console.error('Invalid email or password', error);
+		},
+	});
 
 	const handleFieldChange = (id, value) => {
 		if (id === 'email') setEmail(value);
@@ -35,83 +107,31 @@ function SignIn() {
 
 		// If there are validation errors, stop the submission
 		if (Object.keys(errors).length) return;
-
-		try {
-			const response = await loginUser({ email: email });
-			setStep(2);
-
-			if (response.status === 200) {
-				// Store the user's email in localStorage and a flag indicating they are at step 2
-				localStorage.setItem('step', 'verification');
-				localStorage.setItem('email', email); // Store the email
-				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-				localStorage.setItem('codeExpiration', expiresAt);
-
-				// Start the countdown timer
-				const interval = setInterval(() => {
-					setTimer((prev) => {
-						if (prev <= 1) clearInterval(interval);
-						return prev - 1;
-					});
-				}, 1000);
-			} else {
-			}
-		} catch (error) {
-			setError('Invalid email or password');
-		}
+		loginUserMutation.mutate({ email });
 	};
 
 	const handleVerifyCode = async (e) => {
 		e.preventDefault();
 
-		try {
-			const response = await verifyCode({
-				email,
-				code: verificationCode,
-			});
-			const { token } = response.data;
-
-			localStorage.removeItem('step');
-			localStorage.removeItem('email');
-			localStorage.removeItem('codeExpiration');
-			localStorage.setItem('token', token);
-
-			setLoggedUser(jwtDecode(token));
-
-			alert('login succesful');
-
-			// Redirect to the logged-in area (dashboard, etc.)
-		} catch (err) {
-			setError('Invalid or expired code');
-		}
+		verifyCodeMutation.mutate({ email, code: verificationCode });
 	};
 
 	const resendCode = async () => {
-		try {
-			const response = await loginUser({ email: email });
-
-			if (response.status === 200) {
-				// Store the user's email in localStorage and a flag indicating they are at step 2
-				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-				localStorage.setItem('codeExpiration', expiresAt);
-				setTimer(300);
-				setError('');
-
-				// Start the countdown timer
-				const interval = setInterval(() => {
-					setTimer((prev) => {
-						if (prev <= 1) clearInterval(interval);
-						return prev - 1;
-					});
-				}, 1000);
-			} else {
-			}
-		} catch (error) {
-			setError('Invalid email or password');
-		}
+		resendCodeMutation.mutate({ email });
 	};
 
 	useEffect(() => {
+		// Check if user if logged in
+		const token = localStorage.getItem('token');
+
+		if (token) {
+			const decodedToken = jwtDecode(token);
+			if (decodedToken.id) {
+				setLoggedUser(decodedToken);
+				navigate('/');
+			}
+		}
+
 		// Check if the user is supposed to be on the verification code page
 		const step = localStorage.getItem('step');
 		const expiration = localStorage.getItem('codeExpiration');
@@ -157,9 +177,7 @@ function SignIn() {
 		<Container>
 			{step === 1 ? (
 				<>
-					<Typography component='h1' variant='h1' marginBlock='20px'>
-						Sign in
-					</Typography>
+					<MainTitle title='Sign in' />
 					<StyledSignUpForm onSubmit={handleSubmit}>
 						<InputField
 							label='Email'

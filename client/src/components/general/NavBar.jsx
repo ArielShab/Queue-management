@@ -6,16 +6,15 @@ import {
 	BottomNavigationAction,
 	Container,
 	Paper,
-	Stack,
 } from '@mui/material';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import { UserContext } from '../../context/userContext';
+import PersonIcon from '@mui/icons-material/Person';
+import ServicesIcon from '@mui/icons-material/Settings';
+import QueueIcon from '@mui/icons-material/ListAlt';
 
 function NavBar() {
 	const [value, setValue] = useState(0);
 	const { loggedUser } = useContext(UserContext);
-
-	console.log('loggedUser', loggedUser);
 
 	return loggedUser?.id ? (
 		<Paper
@@ -30,17 +29,14 @@ function NavBar() {
 				}}
 			>
 				<BottomNavigationAction
-					label='Recents'
-					icon={<FavoriteIcon />}
+					label='Person Data'
+					icon={<PersonIcon />}
 				/>
 				<BottomNavigationAction
-					label='Favorites'
-					icon={<FavoriteIcon />}
+					label='Services'
+					icon={<ServicesIcon />}
 				/>
-				<BottomNavigationAction
-					label='Archive'
-					icon={<FavoriteIcon />}
-				/>
+				<BottomNavigationAction label='Queues' icon={<QueueIcon />} />
 			</BottomNavigation>
 		</Paper>
 	) : (
