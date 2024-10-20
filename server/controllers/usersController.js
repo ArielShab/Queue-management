@@ -32,11 +32,15 @@ export const createUser = async (req, res) => {
 			data: data,
 		});
 
-		if (user) res.status(201).json(user.email);
-		else res.status(401).json("Couldn't create user");
+		if (user) {
+			// const workingTimes = await prisma.workingTimes.create();
+			return res.status(201).json(user.email);
+		}
+
+		return res.status(401).json("Couldn't create user");
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Internal server error',
 		});
@@ -52,7 +56,7 @@ export const loginUser = async (req, res) => {
 	});
 
 	if (!user) {
-		return res.status(401).json({ message: 'Invalid email' });
+		return res.status(401).json('Invalid email');
 	}
 
 	try {
@@ -86,12 +90,14 @@ export const loginUser = async (req, res) => {
 					},
 				});
 
-				res.status(200).json('Verification code sent to your email');
+				return res
+					.status(200)
+					.json('Verification code sent to your email');
 			});
 		});
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Internal server error',
 		});
@@ -130,44 +136,15 @@ export const verifyLoginCode = async (req, res) => {
 		);
 
 		// Return the token and user data
-		res.status(200).json(token);
+		return res.status(200).json(token);
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Internal server error',
 		});
 	}
 };
-
-// export const getUserById = async (req, res) => {
-// 	const { id } = req.query;
-
-// 	try {
-// 		// Fetch user
-// 		const user = await prisma.user.findUnique({
-// 			where: { id: +id },
-// 		});
-
-// 		if (!user) {
-// 			return res.status(401).json({ message: 'Invalid user id' });
-// 		}
-
-// 		res.status(200).json({
-// 			firstName: user.firstName,
-// 			lastName: user.lastName,
-// 			email: user.email,
-// 			phone: user.phone,
-// 			queueDuration: user.queueDuration,
-// 		});
-// 	} catch (error) {
-// 		console.error(error);
-// 		res.status(500).json({
-// 			success: false,
-// 			message: 'Internal server error',
-// 		});
-// 	}
-// };
 
 export const getUserPersonalData = async (req, res) => {
 	const { id } = req.query;
@@ -175,7 +152,7 @@ export const getUserPersonalData = async (req, res) => {
 	try {
 		const user = await prisma.user.findUnique({ where: { id: +id } });
 
-		if (!user) return res.status(401).json({ message: 'Invalid user id' });
+		if (!user) return res.status(401).json('Invalid user id');
 
 		return res.status(200).json({
 			id: user.id,
@@ -186,7 +163,7 @@ export const getUserPersonalData = async (req, res) => {
 			queueDuration: user.queueDuration,
 		});
 	} catch (error) {
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Internal server error',
 		});
@@ -194,22 +171,34 @@ export const getUserPersonalData = async (req, res) => {
 };
 
 export const updateUserData = async (req, res) => {
-	// const { id } = req.query;
-	console.log('req.body', req.body);
+	const { id } = req.body;
+	let keyLabel = '';
+	Object.keys(req.body).forEach((key) => {
+		if (key !== 'id') keyLabel = key;
+	});
 
 	try {
-		// const user = await prisma.user.findUnique({ where: { id: +id } });
-		// if (!user) return res.status(401).json({ message: 'Invalid user id' });
-		// return res.status(200).json({
-		// 	id: user.id,
-		// 	firstName: user.firstName,
-		// 	lastName: user.lastName,
-		// 	email: user.email,
-		// 	phone: user.phone,
-		// 	queueDuration: user.queueDuration,
-		// });
+		const response = await prisma.user.update({
+			where: { id: +id },
+			data: {
+				[keyLabel]: req.body[keyLabel],
+			},
+		});
+
+		if (response) {
+			return res.status(201).json({
+				id: response.id,
+				firstName: response.firstName,
+				lastName: response.lastName,
+				email: response.email,
+				phone: response.phone,
+				queueDuration: response.queueDuration,
+			});
+		}
+
+		return res.status(401).json("Couldn't update user");
 	} catch (error) {
-		res.status(500).json({
+		return res.status(500).json({
 			success: false,
 			message: 'Internal server error',
 		});

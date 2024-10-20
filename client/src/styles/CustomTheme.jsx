@@ -17,6 +17,11 @@ const theme = createTheme({
 			fontWeight: 700,
 			lineHeight: 1,
 		},
+		h3: {
+			fontSize: 'clamp(20px, 2.4vw, 24px)',
+			fontWeight: 700,
+			lineHeight: 1,
+		},
 	},
 });
 

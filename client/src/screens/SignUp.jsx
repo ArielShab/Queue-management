@@ -1,4 +1,12 @@
-import { Container, Stack, Typography } from '@mui/material';
+import {
+	Container,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select,
+	Stack,
+	Typography,
+} from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import InputField from '../components/general/InputField';
 import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
@@ -16,9 +24,14 @@ function SignUp() {
 		email: '',
 		phone: '',
 	});
+	const [workingDays, setWorkingDays] = React.useState({});
 	const [fieldsErrors, setFieldsErrors] = useState({});
 	const { setLoggedUser } = useContext(UserContext);
 	const navigate = useNavigate();
+
+	const handleChange = (event) => {
+		setWorkingDays(event.target.value);
+	};
 
 	const createUserMutation = useMutation({
 		mutationFn: createUser,
@@ -130,6 +143,29 @@ function SignUp() {
 					value={fieldsValues.phone}
 					handleFieldChange={handleFieldChange}
 				/>
+				<Typography component='h3' variant='h3'>
+					Choose days of work:
+				</Typography>
+				<FormControl variant='standard' sx={{ m: 1, minWidth: 120 }}>
+					<InputLabel id='demo-simple-select-standard-label'>
+						Age
+					</InputLabel>
+					<Select
+						labelId='demo-simple-select-standard-label'
+						id='demo-simple-select-standard'
+						value={workingDays}
+						onChange={handleChange}
+						label='Days of work'
+					>
+						<MenuItem value={'sunday'}>Sunday</MenuItem>
+						<MenuItem value={'monday'}>Monday</MenuItem>
+						<MenuItem value={'tuesday'}>Tuesday</MenuItem>
+						<MenuItem value={'wednesday'}>wednesday</MenuItem>
+						<MenuItem value={'thursday'}>thursday</MenuItem>
+						<MenuItem value={'friday'}>Friday</MenuItem>
+						<MenuItem value={'saturday'}>Saturday</MenuItem>
+					</Select>
+				</FormControl>
 				<Stack alignItems='flex-end'>
 					<StyledSubmitInput type='submit' value='Register' />
 				</Stack>

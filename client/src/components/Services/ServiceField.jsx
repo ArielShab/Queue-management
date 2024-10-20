@@ -1,32 +1,16 @@
-import React, { useState } from 'react';
 import { IconButton, Stack, TextField, Typography } from '@mui/material';
+import React, { useState } from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-function DataField({
-	label,
-	value,
-	type = 'text',
-	dataKey,
-	handleUpdateField,
-}) {
-	const [fieldValue, setFieldValue] = useState(value);
+function ServiceField({ serviceName }) {
+	const [fieldValue, setFieldValue] = useState(serviceName);
 	const [isEdit, setIsEdit] = useState(false);
-
-	const handleChangeField = () => {
-		if (fieldValue !== value) {
-			handleUpdateField({ [dataKey]: fieldValue });
-
-			setIsEdit(false);
-		} else {
-			setIsEdit(false);
-		}
-	};
 
 	return (
 		<Stack direction='row' columnGap='8px' alignItems='center'>
-			<Typography whiteSpace='nowrap'>{label}</Typography>
 			{isEdit ? (
 				<Stack
 					direction='row'
@@ -39,19 +23,18 @@ function DataField({
 						id='standard-basic'
 						variant='standard'
 						value={fieldValue}
-						type={type}
 						onChange={(e) => setFieldValue(e.target.value)}
 						sx={{ flexGrow: 1 }}
 					/>
 					<IconButton
 						onClick={() => {
+							setFieldValue(serviceName);
 							setIsEdit(false);
-							setFieldValue(value);
 						}}
 					>
 						<CloseIcon />
 					</IconButton>
-					<IconButton onClick={handleChangeField}>
+					<IconButton /*onClick={handleChangeField}*/>
 						<DoneIcon />
 					</IconButton>
 				</Stack>
@@ -62,9 +45,12 @@ function DataField({
 					justifyContent='space-between'
 					width='100%'
 				>
-					<Typography>{value}</Typography>
+					<Typography flexGrow='1'>{fieldValue}</Typography>
 					<IconButton onClick={() => setIsEdit(true)}>
 						<EditIcon />
+					</IconButton>
+					<IconButton>
+						<DeleteIcon />
 					</IconButton>
 				</Stack>
 			)}
@@ -72,4 +58,4 @@ function DataField({
 	);
 }
 
-export default DataField;
+export default ServiceField;

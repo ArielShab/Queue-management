@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { StyledLinksWrapper, StyledNavBar } from '../../styles/NavBarStyles';
 import {
 	BottomNavigation,
@@ -15,30 +15,46 @@ import QueueIcon from '@mui/icons-material/ListAlt';
 function NavBar() {
 	const [value, setValue] = useState(0);
 	const { loggedUser } = useContext(UserContext);
+	const navigate = useNavigate();
 
 	return loggedUser?.id ? (
-		<Paper
-			sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
-			elevation={3}
-		>
-			<BottomNavigation
-				showLabels
-				value={value}
-				onChange={(event, newValue) => {
-					setValue(newValue);
-				}}
+		<>
+			<StyledNavBar>
+				<Container>
+					<StyledLinksWrapper>
+						<NavLink to='sign-out'>Sign Out</NavLink>
+					</StyledLinksWrapper>
+				</Container>
+			</StyledNavBar>
+			<Paper
+				sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
+				elevation={3}
 			>
-				<BottomNavigationAction
-					label='Person Data'
-					icon={<PersonIcon />}
-				/>
-				<BottomNavigationAction
-					label='Services'
-					icon={<ServicesIcon />}
-				/>
-				<BottomNavigationAction label='Queues' icon={<QueueIcon />} />
-			</BottomNavigation>
-		</Paper>
+				<BottomNavigation
+					showLabels
+					value={value}
+					onChange={(event, newValue) => {
+						setValue(newValue);
+					}}
+				>
+					<BottomNavigationAction
+						label='Person Data'
+						icon={<PersonIcon />}
+						onClick={() => navigate('/')}
+					/>
+					<BottomNavigationAction
+						label='Services'
+						icon={<ServicesIcon />}
+						onClick={() => navigate('/services')}
+					/>
+					<BottomNavigationAction
+						label='Queues'
+						icon={<QueueIcon />}
+						onClick={() => navigate('/queues')}
+					/>
+				</BottomNavigation>
+			</Paper>
+		</>
 	) : (
 		<StyledNavBar>
 			<Container>

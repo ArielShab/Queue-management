@@ -1,28 +1,24 @@
 import axios from 'axios';
-const BASE_URL = 'http://localhost:5000/api/users';
+import { BASE_URL } from './index';
 
 export const createUser = async (body) => {
-	return await axios.post(BASE_URL, body);
+	return await axios.post(`${BASE_URL}/users`, body);
 };
 
 export const loginUser = async (body) => {
-	return await axios.post(`${BASE_URL}/login`, body);
+	return await axios.post(`${BASE_URL}/users/login`, body);
 };
 
 export const verifyCode = async (body) => {
-	return await axios.post(`${BASE_URL}/verify-code`, body);
+	return await axios.post(`${BASE_URL}/users/verify-code`, body);
 };
-
-// export const fetchUserById = async (id) => {
-// 	return await axios.get(`${BASE_URL}/get-user-by-id?id=${id}`);
-// };
 
 export const getUserPersonalData = async ({ queryKey }) => {
 	return await axios.get(
-		`${BASE_URL}/get-user-personal-data?id=${+queryKey[1]}`,
+		`${BASE_URL}/users/get-user-personal-data?id=${+queryKey[1]}`,
 	);
 };
 
 export const updateUserDataById = async (body) => {
-	return await axios.put(`${BASE_URL}/update-user-data`, body);
+	return await axios.put(`${BASE_URL}/users/update-user-data`, body);
 };

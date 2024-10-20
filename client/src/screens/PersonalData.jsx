@@ -1,24 +1,23 @@
-import React, { useContext, useState } from 'react';
-import { Container, Stack, TextField, Typography } from '@mui/material';
+import React, { useContext } from 'react';
+import { Container, Stack } from '@mui/material';
 import { UserContext } from '../context/userContext';
 import { getUserPersonalData, updateUserDataById } from '../api/usersApi';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
 import DataField from '../components/personalData/DataField';
+import { StyledLoader } from '../styles/LoaderStyle';
 
 function PersonalData() {
 	const { loggedUser } = useContext(UserContext);
-	const [editFields, setEditFields] = useState({
-		firstName: false,
-		lastName: false,
-		email: false,
-		phone: false,
-		queueDuration: false,
-	});
 
 	const updateUserMutation = useMutation({
 		mutationFn: updateUserDataById,
-		onSuccess: (data, body, context) => {},
+		onSuccess: (data, body, context) => {
+			if (data?.status === 201) alert('Update success');
+		},
+		onError: (error, body, context) => {
+			console.error('error', error);
+		},
 	});
 
 	const {
@@ -38,7 +37,7 @@ function PersonalData() {
 		updateUserMutation.mutate({ ...value, id: loggedUser.id });
 	};
 
-	if (isLoading) return <h1>Loading...</h1>;
+	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
 
 	return (
@@ -49,32 +48,24 @@ function PersonalData() {
 				<DataField
 					label={'First Name:'}
 					value={user.data.firstName}
-					editFields={editFields}
-					setEditFields={setEditFields}
 					dataKey='firstName'
 					handleUpdateField={handleUpdateField}
 				/>
 				<DataField
 					label={'Last Name:'}
 					value={user.data.lastName}
-					editFields={editFields}
-					setEditFields={setEditFields}
 					dataKey='lastName'
 					handleUpdateField={handleUpdateField}
 				/>
 				<DataField
 					label={'Email:'}
 					value={user.data.email}
-					editFields={editFields}
-					setEditFields={setEditFields}
 					dataKey='email'
 					handleUpdateField={handleUpdateField}
 				/>
 				<DataField
 					label={'Phone:'}
 					value={user.data.phone}
-					editFields={editFields}
-					setEditFields={setEditFields}
 					dataKey='phone'
 					handleUpdateField={handleUpdateField}
 				/>
@@ -82,8 +73,6 @@ function PersonalData() {
 					label={'Queue duration:'}
 					value={user.data.queueDuration}
 					type='number'
-					editFields={editFields}
-					setEditFields={setEditFields}
 					dataKey='queueDuration'
 					handleUpdateField={handleUpdateField}
 				/>

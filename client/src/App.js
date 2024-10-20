@@ -8,7 +8,8 @@ const SignIn = lazy(() => import('./screens/SignIn'));
 const SignUp = lazy(() => import('./screens/SignUp'));
 const PersonalData = lazy(() => import('./screens/PersonalData'));
 const Services = lazy(() => import('./screens/Services'));
-const Queue = lazy(() => import('./screens/Queue'));
+const Queues = lazy(() => import('./screens/Queues'));
+const SignOut = lazy(() => import('./screens/SignOut'));
 
 function App() {
 	return (
@@ -54,11 +55,21 @@ function App() {
 						}
 					/>
 					<Route
-						path='/queue'
+						path='/queues'
 						element={
 							<ProtectedRoute>
 								<Suspense fallback={<div>Loading...</div>}>
-									<Queue />
+									<Queues />
+								</Suspense>
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path='/sign-out'
+						element={
+							<ProtectedRoute>
+								<Suspense fallback={<div>Loading...</div>}>
+									<SignOut />
 								</Suspense>
 							</ProtectedRoute>
 						}
