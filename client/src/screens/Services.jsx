@@ -1,9 +1,14 @@
-import { Button, Container, Stack, Typography } from '@mui/material';
+import { Button, Container, Typography } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import MainTitle from '../components/general/MainTitle';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { UserContext } from '../context/userContext';
-import { createUserService, getUserServices } from '../api/servicesApi';
+import {
+	createUserService,
+	deleteUserService,
+	getUserServices,
+	updateUserService,
+} from '../api/servicesApi';
 import { StyledLoader } from '../styles/LoaderStyle';
 import { Box } from '@mui/system';
 import AddServiceField from '../components/Services/AddServiceField';
@@ -12,6 +17,7 @@ import ServiceField from '../components/Services/ServiceField';
 function Services() {
 	const { loggedUser } = useContext(UserContext);
 	const [isAddService, setIsAddService] = useState(false);
+	const queryClient = useQueryClient();
 
 	const {
 		data: services,
@@ -28,10 +34,35 @@ function Services() {
 
 	const createServiceMutation = useMutation({
 		mutationFn: createUserService,
-		onSuccess: (data, body, context) => {
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['services'], { exact: true });
 			console.log('data', data);
 		},
 	});
+
+	const updateServiceMutation = useMutation({
+		mutationFn: updateUserService,
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['services'], { exact: true });
+			console.log('data', data);
+		},
+	});
+
+	const deleteServiceMutation = useMutation({
+		mutationFn: deleteUserService,
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['services'], { exact: true });
+			console.log('data', data);
+		},
+	});
+
+	const handleUpadteService = (serviceId, serviceName) => {
+		updateServiceMutation.mutate({ id: serviceId, serviceName });
+	};
+
+	const handleDeleteService = (serviceId) => {
+		deleteServiceMutation.mutate(serviceId);
+	};
 
 	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
@@ -53,11 +84,15 @@ function Services() {
 				</Typography>
 			) : (
 				<Box marginBottom='16px'>
-					{services.data.map((service) => {
+					{services.data.map((service, index) => {
 						return (
 							<ServiceField
 								key={service.id}
+								serviceId={service.id}
 								serviceName={service.serviceName}
+								index={index + 1}
+								handleUpadteService={handleUpadteService}
+								handleDeleteService={handleDeleteService}
 							/>
 						);
 					})}

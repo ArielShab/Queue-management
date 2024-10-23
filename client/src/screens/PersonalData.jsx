@@ -1,24 +1,19 @@
 import React, { useContext } from 'react';
-import { Container, Stack } from '@mui/material';
+import { Box, Container, Stack, Typography } from '@mui/material';
 import { UserContext } from '../context/userContext';
-import { getUserPersonalData, updateUserDataById } from '../api/usersApi';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+	getUserPersonalData,
+	getUserWorkingDays,
+	updateUserDataById,
+} from '../api/usersApi';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
 import DataField from '../components/personalData/DataField';
 import { StyledLoader } from '../styles/LoaderStyle';
 
 function PersonalData() {
 	const { loggedUser } = useContext(UserContext);
-
-	const updateUserMutation = useMutation({
-		mutationFn: updateUserDataById,
-		onSuccess: (data, body, context) => {
-			if (data?.status === 201) alert('Update success');
-		},
-		onError: (error, body, context) => {
-			console.error('error', error);
-		},
-	});
+	const queryClient = useQueryClient();
 
 	const {
 		data: user,
@@ -30,6 +25,27 @@ function PersonalData() {
 		queryFn: getUserPersonalData,
 		onError: (error) => {
 			console.log("Couldn't get user data", error);
+		},
+	});
+
+	const { data: workingDays } = useQuery({
+		queryKey: ['workingDays', loggedUser?.id],
+		queryFn: getUserWorkingDays,
+		onError: (error) => {
+			console.log("Couldn't get user working days", error);
+		},
+	});
+
+	console.log('workingDays', workingDays);
+
+	const updateUserMutation = useMutation({
+		mutationFn: updateUserDataById,
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['user'], { exact: true });
+			if (data?.status === 201) alert('Update success');
+		},
+		onError: (error) => {
+			console.error('error', error);
 		},
 	});
 
@@ -77,6 +93,12 @@ function PersonalData() {
 					handleUpdateField={handleUpdateField}
 				/>
 			</Stack>
+
+			<Box marginTop='16px'>
+				<Typography component='h3' variant='h3'>
+					Working Days
+				</Typography>
+			</Box>
 		</Container>
 	);
 }

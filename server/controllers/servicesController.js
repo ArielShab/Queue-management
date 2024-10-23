@@ -33,3 +33,35 @@ export const createUserServicesById = async (req, res) => {
 		return res.status(500).json({ message: 'Internal server error' });
 	}
 };
+
+export const updateUserService = async (req, res) => {
+	const { id, serviceName } = req.body;
+	try {
+		const service = await prisma.service.update({
+			where: { id },
+			data: {
+				serviceName,
+			},
+		});
+
+		if (service) return res.status(201).json('Service updated !');
+		return res.status(401).json("Couldn't update service");
+	} catch (error) {
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+};
+
+export const deleteUserService = async (req, res) => {
+	const { id } = req.query;
+
+	try {
+		const response = await prisma.service.delete({
+			where: { id: +id },
+		});
+
+		if (response) return res.status(200).json('Service deleted !');
+		return res.status(401).json("Couldn't delete service");
+	} catch (error) {
+		return res.status(500).json({ message: 'Internal server error' });
+	}
+};

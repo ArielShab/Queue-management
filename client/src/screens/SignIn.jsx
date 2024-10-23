@@ -21,7 +21,7 @@ function SignIn() {
 
 	const loginUserMutation = useMutation({
 		mutationFn: loginUser,
-		onSuccess: (data, body, context) => {
+		onSuccess: () => {
 			setStep(2);
 			// Store the user's email in localStorage and a flag indicating they are at step 2
 			localStorage.setItem('step', 'verification');

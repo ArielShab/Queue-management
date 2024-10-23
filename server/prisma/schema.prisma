@@ -14,19 +14,19 @@ datasource db {
 }
 
 model User {
-    id               Int           @id @default(autoincrement())
+    id               Int            @id @default(autoincrement())
     firstName        String
     lastName         String
-    email            String        @unique
+    email            String         @unique
     phone            String?
     verificationCode String?
     codeExpiration   DateTime?
-    queueDuration    Int           @default(30)
-    createdAt        DateTime      @default(now())
-    updatedAt        DateTime      @updatedAt
-    Service          Service?
+    queueDuration    Int            @default(30)
+    createdAt        DateTime       @default(now())
+    updatedAt        DateTime       @updatedAt
+    Service          Service[]
     Queue            Queue?
-    WorkingTimes     WorkingTimes?
+    WorkingTimes     WorkingTimes[]
 }
 
 model Service {
@@ -51,7 +51,7 @@ model Queue {
 model WorkingTimes {
     id      Int    @id @default(autoincrement())
     user    User   @relation(fields: [userId], references: [id])
-    userId  Int    @unique
+    userId  Int
     day     String
     opening String @default("8:00")
     closing String @default("20:00")

@@ -6,6 +6,7 @@ import {
 	// getUserById,
 	getUserPersonalData,
 	updateUserData,
+	getUserWorkingDays,
 } from '../controllers/usersController.js';
 
 const router = express.Router();
@@ -24,6 +25,9 @@ router.post('/verify-code', verifyLoginCode);
 
 // Get user personal data
 router.get('/get-user-personal-data', getUserPersonalData);
+
+// Get user working days
+router.get('/get-working-days', getUserWorkingDays);
 
 // Update user data by id
 router.put('/update-user-data', updateUserData);

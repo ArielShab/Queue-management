@@ -19,6 +19,12 @@ export const getUserPersonalData = async ({ queryKey }) => {
 	);
 };
 
+export const getUserWorkingDays = async ({ queryKey }) => {
+	return await axios.get(
+		`${BASE_URL}/users/get-working-days?id=${+queryKey[1]}`,
+	);
+};
+
 export const updateUserDataById = async (body) => {
 	return await axios.put(`${BASE_URL}/users/update-user-data`, body);
 };

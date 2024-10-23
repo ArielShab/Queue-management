@@ -16,7 +16,10 @@ function DataField({
 
 	const handleChangeField = () => {
 		if (fieldValue !== value) {
-			handleUpdateField({ [dataKey]: fieldValue });
+			handleUpdateField({
+				[dataKey]:
+					dataKey === 'queueDuration' ? +fieldValue : fieldValue,
+			});
 
 			setIsEdit(false);
 		} else {

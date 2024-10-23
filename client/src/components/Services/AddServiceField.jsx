@@ -25,7 +25,12 @@ function AddServiceField({ setIsAddService, handleAddService }) {
 			<IconButton onClick={() => setIsAddService(false)}>
 				<CloseIcon />
 			</IconButton>
-			<IconButton onClick={() => handleAddService(serviceName)}>
+			<IconButton
+				onClick={() => {
+					handleAddService(serviceName);
+					setIsAddService(false);
+				}}
+			>
 				<DoneIcon />
 			</IconButton>
 		</Stack>

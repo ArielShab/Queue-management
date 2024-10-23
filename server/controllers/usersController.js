@@ -10,7 +10,8 @@ const generateCode = () =>
 	Math.floor(100000 + Math.random() * 900000).toString();
 
 export const createUser = async (req, res) => {
-	const data = { ...req.body };
+	const fieldsValues = { ...req.body.fieldsValues };
+	const workingDays = req.body.workingDays;
 
 	try {
 		// Generate a 6-digit random code
@@ -23,18 +24,25 @@ export const createUser = async (req, res) => {
 
 		console.log('randomCode', randomCode);
 
-		data.verificationCode = hash;
-		// data.verificationCode = randomCode;
-		data.codeExpiration = expiresAt;
+		fieldsValues.verificationCode = hash;
+		fieldsValues.codeExpiration = expiresAt;
 
 		// Create a new user in the database
 		const user = await prisma.user.create({
-			data: data,
+			data: fieldsValues,
 		});
 
 		if (user) {
-			// const workingTimes = await prisma.workingTimes.create();
-			return res.status(201).json(user.email);
+			const finalWorkingDays = [];
+			workingDays.forEach((dayObj) => {
+				finalWorkingDays.push({ userId: user.id, ...dayObj });
+			});
+
+			const workingTimes = await prisma.workingTimes.createMany({
+				data: finalWorkingDays,
+			});
+
+			if (workingTimes) return res.status(201).json(user.email);
 		}
 
 		return res.status(401).json("Couldn't create user");
@@ -82,7 +90,7 @@ export const loginUser = async (req, res) => {
 
 				// Hashing successful, 'hash' contains the hashed password
 				console.log('randomCode', randomCode);
-				await prisma.user.update({
+				const user = await prisma.user.update({
 					where: { email },
 					data: {
 						verificationCode: hash,
@@ -90,9 +98,11 @@ export const loginUser = async (req, res) => {
 					},
 				});
 
-				return res
-					.status(200)
-					.json('Verification code sent to your email');
+				if (user) {
+					return res
+						.status(200)
+						.json('Verification code sent to your email');
+				}
 			});
 		});
 	} catch (error) {
@@ -170,6 +180,28 @@ export const getUserPersonalData = async (req, res) => {
 	}
 };
 
+export const getUserWorkingDays = async (req, res) => {
+	const { id } = req.query;
+
+	try {
+		const workingDays = await prisma.workingTimes.findMany({
+			where: { userId: +id },
+		});
+
+		console.log('workingDays', workingDays);
+
+		if (!workingDays)
+			return res.status(401).json("Couldn't get working days");
+
+		return res.status(200).json(workingDays);
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
 export const updateUserData = async (req, res) => {
 	const { id } = req.body;
 	let keyLabel = '';
@@ -178,21 +210,21 @@ export const updateUserData = async (req, res) => {
 	});
 
 	try {
-		const response = await prisma.user.update({
+		const user = await prisma.user.update({
 			where: { id: +id },
 			data: {
 				[keyLabel]: req.body[keyLabel],
 			},
 		});
 
-		if (response) {
+		if (user) {
 			return res.status(201).json({
-				id: response.id,
-				firstName: response.firstName,
-				lastName: response.lastName,
-				email: response.email,
-				phone: response.phone,
-				queueDuration: response.queueDuration,
+				id: user.id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				phone: user.phone,
+				queueDuration: user.queueDuration,
 			});
 		}
 

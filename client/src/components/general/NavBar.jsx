@@ -17,53 +17,53 @@ function NavBar() {
 	const { loggedUser } = useContext(UserContext);
 	const navigate = useNavigate();
 
-	return loggedUser?.id ? (
+	return (
 		<>
 			<StyledNavBar>
 				<Container>
 					<StyledLinksWrapper>
-						<NavLink to='sign-out'>Sign Out</NavLink>
+						{loggedUser?.id ? (
+							<NavLink to='sign-out'>Sign Out</NavLink>
+						) : (
+							<>
+								<NavLink to='sign-in'>Sign In</NavLink>
+								<NavLink to='sign-up'>Sign Up</NavLink>
+							</>
+						)}
 					</StyledLinksWrapper>
 				</Container>
 			</StyledNavBar>
-			<Paper
-				sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
-				elevation={3}
-			>
-				<BottomNavigation
-					showLabels
-					value={value}
-					onChange={(event, newValue) => {
-						setValue(newValue);
-					}}
+			{loggedUser?.id && (
+				<Paper
+					sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
+					elevation={3}
 				>
-					<BottomNavigationAction
-						label='Person Data'
-						icon={<PersonIcon />}
-						onClick={() => navigate('/')}
-					/>
-					<BottomNavigationAction
-						label='Services'
-						icon={<ServicesIcon />}
-						onClick={() => navigate('/services')}
-					/>
-					<BottomNavigationAction
-						label='Queues'
-						icon={<QueueIcon />}
-						onClick={() => navigate('/queues')}
-					/>
-				</BottomNavigation>
-			</Paper>
+					<BottomNavigation
+						showLabels
+						value={value}
+						onChange={(event, newValue) => {
+							setValue(newValue);
+						}}
+					>
+						<BottomNavigationAction
+							label='Person Data'
+							icon={<PersonIcon />}
+							onClick={() => navigate('/')}
+						/>
+						<BottomNavigationAction
+							label='Services'
+							icon={<ServicesIcon />}
+							onClick={() => navigate('/services')}
+						/>
+						<BottomNavigationAction
+							label='Queues'
+							icon={<QueueIcon />}
+							onClick={() => navigate('/queues')}
+						/>
+					</BottomNavigation>
+				</Paper>
+			)}
 		</>
-	) : (
-		<StyledNavBar>
-			<Container>
-				<StyledLinksWrapper>
-					<NavLink to='sign-in'>Sign In</NavLink>
-					<NavLink to='sign-up'>Sign Up</NavLink>
-				</StyledLinksWrapper>
-			</Container>
-		</StyledNavBar>
 	);
 }
 

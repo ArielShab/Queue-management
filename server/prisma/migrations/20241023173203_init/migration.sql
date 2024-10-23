@@ -5,7 +5,9 @@ CREATE TABLE `User` (
     `lastName` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NULL,
-    `tempCode` VARCHAR(191) NULL,
+    `verificationCode` VARCHAR(191) NULL,
+    `codeExpiration` DATETIME(3) NULL,
+    `queueDuration` INTEGER NOT NULL DEFAULT 30,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -19,7 +21,6 @@ CREATE TABLE `Service` (
     `serviceName` VARCHAR(191) NOT NULL,
     `userId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Service_userId_key`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -32,8 +33,20 @@ CREATE TABLE `Queue` (
     `serviceId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
 
+    UNIQUE INDEX `Queue_clientEmail_key`(`clientEmail`),
     UNIQUE INDEX `Queue_serviceId_key`(`serviceId`),
     UNIQUE INDEX `Queue_userId_key`(`userId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `WorkingTimes` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
+    `day` VARCHAR(191) NOT NULL,
+    `opening` VARCHAR(191) NOT NULL DEFAULT '8:00',
+    `closing` VARCHAR(191) NOT NULL DEFAULT '20:00',
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -45,3 +58,6 @@ ALTER TABLE `Queue` ADD CONSTRAINT `Queue_serviceId_fkey` FOREIGN KEY (`serviceI
 
 -- AddForeignKey
 ALTER TABLE `Queue` ADD CONSTRAINT `Queue_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `WorkingTimes` ADD CONSTRAINT `WorkingTimes_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

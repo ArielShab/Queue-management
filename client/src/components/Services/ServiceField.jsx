@@ -5,7 +5,13 @@ import DoneIcon from '@mui/icons-material/Done';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-function ServiceField({ serviceName }) {
+function ServiceField({
+	serviceId,
+	serviceName,
+	index,
+	handleUpadteService,
+	handleDeleteService,
+}) {
 	const [fieldValue, setFieldValue] = useState(serviceName);
 	const [isEdit, setIsEdit] = useState(false);
 
@@ -28,14 +34,19 @@ function ServiceField({ serviceName }) {
 					/>
 					<IconButton
 						onClick={() => {
+							handleUpadteService(serviceId, fieldValue);
+							setIsEdit(false);
+						}}
+					>
+						<DoneIcon />
+					</IconButton>
+					<IconButton
+						onClick={() => {
 							setFieldValue(serviceName);
 							setIsEdit(false);
 						}}
 					>
 						<CloseIcon />
-					</IconButton>
-					<IconButton /*onClick={handleChangeField}*/>
-						<DoneIcon />
 					</IconButton>
 				</Stack>
 			) : (
@@ -45,11 +56,11 @@ function ServiceField({ serviceName }) {
 					justifyContent='space-between'
 					width='100%'
 				>
-					<Typography flexGrow='1'>{fieldValue}</Typography>
+					<Typography flexGrow='1'>{`${index}. ${fieldValue}`}</Typography>
 					<IconButton onClick={() => setIsEdit(true)}>
 						<EditIcon />
 					</IconButton>
-					<IconButton>
+					<IconButton onClick={() => handleDeleteService(serviceId)}>
 						<DeleteIcon />
 					</IconButton>
 				</Stack>
