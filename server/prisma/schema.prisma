@@ -21,31 +21,31 @@ model User {
     phone            String?
     verificationCode String?
     codeExpiration   DateTime?
-    queueDuration    Int            @default(30)
+    queueDuration    Int
     createdAt        DateTime       @default(now())
     updatedAt        DateTime       @updatedAt
     Service          Service[]
-    Queue            Queue?
+    Queue            Queue[]
     WorkingTimes     WorkingTimes[]
 }
 
 model Service {
-    id          Int    @id @default(autoincrement())
+    id          Int     @id @default(autoincrement())
     serviceName String
-    user        User   @relation(fields: [userId], references: [id])
+    user        User    @relation(fields: [userId], references: [id])
     userId      Int
-    Queue       Queue?
+    Queue       Queue[]
 }
 
 model Queue {
     id          Int      @id @default(autoincrement())
     clientName  String
-    clientEmail String   @unique
+    clientEmail String
     queueTime   DateTime
     service     Service  @relation(fields: [serviceId], references: [id])
-    serviceId   Int      @unique
+    serviceId   Int
     user        User     @relation(fields: [userId], references: [id])
-    userId      Int      @unique
+    userId      Int
 }
 
 model WorkingTimes {
@@ -53,6 +53,6 @@ model WorkingTimes {
     user    User   @relation(fields: [userId], references: [id])
     userId  Int
     day     String
-    opening String @default("8:00")
-    closing String @default("20:00")
+    opening String
+    closing String
 }

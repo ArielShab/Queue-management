@@ -7,7 +7,7 @@ CREATE TABLE `User` (
     `phone` VARCHAR(191) NULL,
     `verificationCode` VARCHAR(191) NULL,
     `codeExpiration` DATETIME(3) NULL,
-    `queueDuration` INTEGER NOT NULL DEFAULT 30,
+    `queueDuration` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -33,9 +33,6 @@ CREATE TABLE `Queue` (
     `serviceId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Queue_clientEmail_key`(`clientEmail`),
-    UNIQUE INDEX `Queue_serviceId_key`(`serviceId`),
-    UNIQUE INDEX `Queue_userId_key`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -44,8 +41,8 @@ CREATE TABLE `WorkingTimes` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
     `day` VARCHAR(191) NOT NULL,
-    `opening` VARCHAR(191) NOT NULL DEFAULT '8:00',
-    `closing` VARCHAR(191) NOT NULL DEFAULT '20:00',
+    `opening` VARCHAR(191) NOT NULL,
+    `closing` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

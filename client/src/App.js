@@ -2,7 +2,6 @@ import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import NavBar from './components/general/NavBar';
 import ProtectedRoute from './tools/ProtectedRoute';
-// import { PrivateRoute, AnonymousRoute } from './tools/RoutesHelpers';
 
 const SignIn = lazy(() => import('./screens/SignIn'));
 const SignUp = lazy(() => import('./screens/SignUp'));
@@ -10,6 +9,7 @@ const PersonalData = lazy(() => import('./screens/PersonalData'));
 const Services = lazy(() => import('./screens/Services'));
 const Queues = lazy(() => import('./screens/Queues'));
 const SignOut = lazy(() => import('./screens/SignOut'));
+const OrderQueue = lazy(() => import('./screens/OrderQueue'));
 
 function App() {
 	return (
@@ -31,6 +31,14 @@ function App() {
 						element={
 							<Suspense fallback={<div>Loading...</div>}>
 								<SignUp />
+							</Suspense>
+						}
+					/>
+					<Route
+						path='/order-queue/:id'
+						element={
+							<Suspense fallback={<div>Loading...</div>}>
+								<OrderQueue />
 							</Suspense>
 						}
 					/>

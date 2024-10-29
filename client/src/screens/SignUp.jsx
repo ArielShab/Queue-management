@@ -194,15 +194,13 @@ function SignUp() {
 					})}
 				</Box>
 
-				{workingDays.length < 7 && (
-					<Button
-						variant='outlined'
-						onClick={handleAddDayOfWork}
-						sx={{ marginTop: '8px' }}
-					>
-						Add day
-					</Button>
-				)}
+				<Button
+					variant='outlined'
+					onClick={handleAddDayOfWork}
+					sx={{ marginTop: '8px' }}
+				>
+					Add day
+				</Button>
 
 				<Stack alignItems='flex-end'>
 					<StyledSubmitInput type='submit' value='Register' />

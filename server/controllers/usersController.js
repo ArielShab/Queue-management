@@ -188,8 +188,6 @@ export const getUserWorkingDays = async (req, res) => {
 			where: { userId: +id },
 		});
 
-		console.log('workingDays', workingDays);
-
 		if (!workingDays)
 			return res.status(401).json("Couldn't get working days");
 
