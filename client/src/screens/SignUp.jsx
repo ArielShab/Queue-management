@@ -154,7 +154,7 @@ function SignUp() {
 					handleFieldChange={handleFieldChange}
 				/>
 				<InputField
-					label='Phone'
+					label='Phone *'
 					id='phone'
 					placeholder='Enter first name please'
 					fieldsErrors={fieldsErrors}
@@ -162,7 +162,7 @@ function SignUp() {
 					handleFieldChange={handleFieldChange}
 				/>
 				<InputField
-					label='Queue Duration (minutes)'
+					label='Queue Duration (minutes) *'
 					id='queueDuration'
 					placeholder='Enter queue duration please'
 					type={'number'}
@@ -197,7 +197,7 @@ function SignUp() {
 				<Button
 					variant='outlined'
 					onClick={handleAddDayOfWork}
-					sx={{ marginTop: '8px' }}
+					sx={{ marginTop: 2 }}
 				>
 					Add day
 				</Button>

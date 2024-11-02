@@ -65,7 +65,11 @@ function DataField({
 					justifyContent='space-between'
 					width='100%'
 				>
-					<Typography>{value}</Typography>
+					<Typography>
+						{dataKey === 'queueDuration'
+							? `${value} minutes`
+							: value}
+					</Typography>
 					<IconButton onClick={() => setIsEdit(true)}>
 						<EditIcon />
 					</IconButton>

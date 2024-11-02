@@ -109,7 +109,7 @@ function Services() {
 				<Button
 					variant='outlined'
 					onClick={() => setIsAddService(true)}
-					sx={{ marginTop: '8px' }}
+					sx={{ mt: 3 }}
 				>
 					Add service
 				</Button>
