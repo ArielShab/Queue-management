@@ -32,6 +32,8 @@ CREATE TABLE `Queue` (
     `queueTime` DATETIME(3) NOT NULL,
     `serviceId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
+    `verificationCode` VARCHAR(191) NULL,
+    `codeExpiration` DATETIME(3) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

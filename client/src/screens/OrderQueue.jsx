@@ -20,6 +20,7 @@ import dayjs from 'dayjs';
 import { StyledLoader } from '../styles/LoaderStyle';
 import { getUserServices } from '../api/servicesApi';
 import { getUserPersonalData } from '../api/usersApi';
+import EmailPopup from '../components/orderQueue/EmailPopup';
 
 function OrderQueue() {
 	const { id: providerId } = useParams();
@@ -27,6 +28,8 @@ function OrderQueue() {
 	const [selectedTime, setSelectedTime] = useState('');
 	const [selectedService, setSelectedService] = useState('');
 	const [selectedDay, setSelectedDay] = useState('');
+	const [openEmailConfirmation, setOpenEmailConfirmation] = useState(false);
+	const [emailConfirmationStep, setEmailConfirmationStep] = useState(true);
 	const days = [
 		'Sunday',
 		'Monday',
@@ -54,8 +57,6 @@ function OrderQueue() {
 		},
 	});
 
-	console.log('user', user);
-
 	const {
 		data: services,
 		isLoading,
@@ -68,6 +69,20 @@ function OrderQueue() {
 			console.log(error);
 		},
 	});
+
+	const handleSendEmailConfirmation = (email) => {
+		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
+
+		if (!email) {
+			alert('Email is required');
+			return;
+		} else if (!emailRegex.test(email)) {
+			alert('Invalid email');
+			return;
+		}
+
+		setEmailConfirmationStep(false);
+	};
 
 	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
@@ -162,7 +177,7 @@ function OrderQueue() {
 					<Box textAlign='end' marginBottom='30px'>
 						<Button
 							variant='contained'
-							// onClick={() => setIsAddService(true)}
+							onClick={() => setOpenEmailConfirmation(true)}
 							sx={{ mt: 3 }}
 						>
 							Book queue
@@ -170,6 +185,12 @@ function OrderQueue() {
 					</Box>
 				</>
 			)}
+			<EmailPopup
+				open={openEmailConfirmation}
+				setOpen={setOpenEmailConfirmation}
+				step={emailConfirmationStep}
+				handleSendEmailConfirmation={handleSendEmailConfirmation}
+			/>
 		</Container>
 	);
 }
