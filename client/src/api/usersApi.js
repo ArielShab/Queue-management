@@ -28,3 +28,13 @@ export const getUserWorkingDays = async ({ queryKey }) => {
 export const updateUserDataById = async (body) => {
 	return await axios.put(`${BASE_URL}/users/update-user-data`, body);
 };
+
+export const updateUserWorkingDays = async (body) => {
+	return await axios.put(`${BASE_URL}/users/update-user-working-days`, body);
+};
+
+export const deleteUserWorkingDay = async (id) => {
+	return await axios.delete(
+		`${BASE_URL}/users/delete-user-working-day?id=${id}`,
+	);
+};

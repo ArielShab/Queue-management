@@ -23,4 +23,5 @@ export const StyledSubmitInput = styled('input')(({ theme }) => ({
 export const StyledWarningMessage = styled('span')(({ theme }) => ({
 	fontSize: '14px',
 	color: 'red',
+	display: 'block',
 }));

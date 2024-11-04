@@ -21,6 +21,7 @@ import { StyledLoader } from '../styles/LoaderStyle';
 import { getUserServices } from '../api/servicesApi';
 import { getUserPersonalData } from '../api/usersApi';
 import EmailPopup from '../components/orderQueue/EmailPopup';
+import { days } from '../tools/WeekDays';
 
 function OrderQueue() {
 	const { id: providerId } = useParams();
@@ -30,15 +31,6 @@ function OrderQueue() {
 	const [selectedDay, setSelectedDay] = useState('');
 	const [openEmailConfirmation, setOpenEmailConfirmation] = useState(false);
 	const [emailConfirmationStep, setEmailConfirmationStep] = useState(true);
-	const days = [
-		'Sunday',
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday',
-		'Saturday',
-	];
 
 	const { data: allQueues } = useQuery({
 		queryKey: ['queues', { providerId, selectedDay }],

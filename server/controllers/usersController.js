@@ -234,3 +234,53 @@ export const updateUserData = async (req, res) => {
 		});
 	}
 };
+
+export const updateUserWorkingDays = async (req, res) => {
+	const { id, opening, closing } = req.body;
+
+	try {
+		const workingDay = await prisma.workingTimes.update({
+			where: {
+				id,
+			},
+			data: {
+				opening,
+				closing,
+			},
+		});
+
+		if (workingDay) return res.status(200).json(workingDay);
+
+		return res.status(401).json('Could not update working day');
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
+export const deleteUserWorkingDay = async (req, res) => {
+	const { id } = req.query;
+
+	console.log('id', id);
+
+	try {
+		const response = await prisma.workingTimes.delete({
+			where: {
+				id: +id,
+			},
+		});
+
+		if (response) return res.status(200).json('Day was deleted !');
+
+		return res.status(401).json('Could not delete working day');
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};

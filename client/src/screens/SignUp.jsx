@@ -1,7 +1,11 @@
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import React, { useContext, useEffect, useState } from 'react';
 import InputField from '../components/general/InputField';
-import { StyledSignUpForm, StyledSubmitInput } from '../styles/SignUpStyles';
+import {
+	StyledSignUpForm,
+	StyledSubmitInput,
+	StyledWarningMessage,
+} from '../styles/SignUpStyles';
 import { createUser } from '../api/usersApi';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -9,6 +13,7 @@ import { UserContext } from '../context/userContext';
 import { useMutation } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
 import WorkingDaySelect from '../components/SignUp/WorkingDaySelect';
+import { days } from '../tools/WeekDays';
 
 function SignUp() {
 	const [fieldsValues, setFieldsValues] = useState({
@@ -20,15 +25,6 @@ function SignUp() {
 	});
 	const [fieldsErrors, setFieldsErrors] = useState({});
 	const [workingDays, setWorkingDays] = useState([]);
-	const days = [
-		'Sunday',
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday',
-		'Saturday',
-	];
 	const { setLoggedUser } = useContext(UserContext);
 	const navigate = useNavigate();
 
@@ -85,6 +81,8 @@ function SignUp() {
 		createUserMutation.mutate({ fieldsValues, workingDays });
 	};
 
+	console.log('fieldsErrors', fieldsErrors);
+
 	const validate = (values) => {
 		const errors = {};
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
@@ -105,6 +103,17 @@ function SignUp() {
 			errors.queueDuration = 'Queue duration is required';
 		else if (isNaN(values.queueDuration))
 			errors.queueDuration = 'Invalid queue duration';
+
+		if (!workingDays.length)
+			errors.workingDays = 'You should choose at least 1 working day';
+		else if (
+			(workingDays.length === 1 && !workingDays[0].day) ||
+			!workingDays[0].opening ||
+			!workingDays[0].closing
+		)
+			errors.workingDays = 'Working day is missing data';
+		else if (workingDays[0].opening >= workingDays[0].closing)
+			errors.workingDays = 'Invalid working time';
 
 		return errors;
 	};
@@ -172,7 +181,7 @@ function SignUp() {
 				/>
 
 				<Typography component='h3' variant='h3' marginTop='16px'>
-					Choose time of work:
+					Choose days of work:
 				</Typography>
 
 				<Box marginTop='16px'>
@@ -194,6 +203,9 @@ function SignUp() {
 					})}
 				</Box>
 
+				<StyledWarningMessage>
+					{fieldsErrors.workingDays}
+				</StyledWarningMessage>
 				<Button
 					variant='outlined'
 					onClick={handleAddDayOfWork}

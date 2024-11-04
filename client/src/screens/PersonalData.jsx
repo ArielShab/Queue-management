@@ -2,14 +2,17 @@ import React, { useContext } from 'react';
 import { Box, Container, Stack, Typography } from '@mui/material';
 import { UserContext } from '../context/userContext';
 import {
+	deleteUserWorkingDay,
 	getUserPersonalData,
 	getUserWorkingDays,
 	updateUserDataById,
+	updateUserWorkingDays,
 } from '../api/usersApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
 import DataField from '../components/personalData/DataField';
 import { StyledLoader } from '../styles/LoaderStyle';
+import WorkingDayField from '../components/personalData/WorkingDayField';
 
 function PersonalData() {
 	const { loggedUser } = useContext(UserContext);
@@ -36,8 +39,6 @@ function PersonalData() {
 		},
 	});
 
-	console.log('workingDays', workingDays);
-
 	const updateUserMutation = useMutation({
 		mutationFn: updateUserDataById,
 		onSuccess: (data) => {
@@ -49,8 +50,31 @@ function PersonalData() {
 		},
 	});
 
+	const updateWorkingDaysMutation = useMutation({
+		mutationFn: updateUserWorkingDays,
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['workingDays'], { exact: true });
+		},
+	});
+
+	const deleteWorkingDayById = useMutation({
+		mutationFn: deleteUserWorkingDay,
+		onSuccess: (data) => {
+			queryClient.invalidateQueries(['workingDays'], { exact: true });
+			console.log('data', data);
+		},
+	});
+
 	const handleUpdateField = (value) => {
 		updateUserMutation.mutate({ ...value, id: loggedUser.id });
+	};
+
+	const handleUpdateUserWorkingDays = (value) => {
+		updateWorkingDaysMutation.mutate(value);
+	};
+
+	const handleDeleteWorkingDay = (id) => {
+		deleteWorkingDayById.mutate(id);
 	};
 
 	if (isLoading) return <StyledLoader />;
@@ -95,9 +119,23 @@ function PersonalData() {
 			</Stack>
 
 			<Box marginTop='16px'>
-				<Typography component='h3' variant='h3'>
+				<Typography component='h3' variant='h3' marginBottom='8px'>
 					Working Days
 				</Typography>
+
+				{workingDays?.data.map((workingDay, index) => {
+					return (
+						<WorkingDayField
+							key={workingDay.id}
+							index={index}
+							workingDay={workingDay}
+							handleUpdateUserWorkingDays={
+								handleUpdateUserWorkingDays
+							}
+							handleDeleteWorkingDay={handleDeleteWorkingDay}
+						/>
+					);
+				})}
 			</Box>
 		</Container>
 	);

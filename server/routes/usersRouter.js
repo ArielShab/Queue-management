@@ -7,6 +7,8 @@ import {
 	getUserPersonalData,
 	updateUserData,
 	getUserWorkingDays,
+	updateUserWorkingDays,
+	deleteUserWorkingDay,
 } from '../controllers/usersController.js';
 
 const router = express.Router();
@@ -31,5 +33,11 @@ router.get('/get-working-days', getUserWorkingDays);
 
 // Update user data by id
 router.put('/update-user-data', updateUserData);
+
+// Update user working days
+router.put('/update-user-working-days', updateUserWorkingDays);
+
+// Delete user working day by id
+router.delete('/delete-user-working-day', deleteUserWorkingDay);
 
 export default router;

@@ -17,6 +17,7 @@ function WorkingDaySelect({
 	selectedOpening,
 	selectedClosing,
 	handleChangeWorkingDays,
+	isDeletable = true,
 	handleDeleteDaySelect,
 }) {
 	const hours = [
@@ -152,9 +153,11 @@ function WorkingDaySelect({
 						})}
 					</Select>
 				</FormControl>
-				<IconButton onClick={() => handleDeleteDaySelect(index)}>
-					<DeleteIcon />
-				</IconButton>
+				{isDeletable && (
+					<IconButton onClick={() => handleDeleteDaySelect(index)}>
+						<DeleteIcon />
+					</IconButton>
+				)}
 			</Stack>
 		</Box>
 	);
