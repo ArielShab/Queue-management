@@ -48,6 +48,7 @@ model Queue {
     userId           Int
     verificationCode String?
     codeExpiration   DateTime?
+    queueApproved    Boolean   @default(false)
 }
 
 model WorkingTimes {

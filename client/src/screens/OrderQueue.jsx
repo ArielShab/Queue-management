@@ -14,26 +14,36 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { fetchUserQueues } from '../api/queuesApi';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import {
+	fetchUserQueues,
+	sendClientConfirmationCode,
+	sendClientQueueData,
+} from '../api/queuesApi';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import { StyledLoader } from '../styles/LoaderStyle';
 import { getUserServices } from '../api/servicesApi';
 import { getUserPersonalData } from '../api/usersApi';
 import EmailPopup from '../components/orderQueue/EmailPopup';
 import { days } from '../tools/WeekDays';
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 function OrderQueue() {
 	const { id: providerId } = useParams();
 	const [selectedDate, setSelectedDate] = useState(null);
 	const [selectedTime, setSelectedTime] = useState('');
 	const [selectedService, setSelectedService] = useState('');
-	const [selectedDay, setSelectedDay] = useState('');
+	const [selectedDayName, setSelectedDayName] = useState('');
 	const [openEmailConfirmation, setOpenEmailConfirmation] = useState(false);
 	const [emailConfirmationStep, setEmailConfirmationStep] = useState(true);
+	const [timer, setTimer] = useState(300);
 
 	const { data: allQueues } = useQuery({
-		queryKey: ['queues', { providerId, selectedDay }],
+		queryKey: ['queues', { providerId, selectedDayName }],
 		queryFn: fetchUserQueues,
 		enabled: selectedDate !== null,
 		onError: (error) => {
@@ -62,24 +72,80 @@ function OrderQueue() {
 		},
 	});
 
-	const handleSendEmailConfirmation = (email) => {
+	const sendClientQueueMutation = useMutation({
+		mutationFn: sendClientQueueData,
+		onSuccess: (data) => {
+			setEmailConfirmationStep(false);
+			const interval = setInterval(() => {
+				setTimer((prev) => {
+					if (prev <= 1) clearInterval(interval);
+					return prev - 1;
+				});
+			}, 1000);
+		},
+		onError: (error) => {
+			console.error('error', error);
+		},
+	});
+
+	const sendConfirmationCodeMutation = useMutation({
+		mutationFn: sendClientConfirmationCode,
+		onSuccess: (data) => {
+			setEmailConfirmationStep(false);
+			const interval = setInterval(() => {
+				setTimer((prev) => {
+					if (prev <= 1) clearInterval(interval);
+					return prev - 1;
+				});
+			}, 1000);
+		},
+		onError: (error) => {
+			console.error('error', error);
+		},
+	});
+
+	const handleSendEmailConfirmation = (data) => {
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
 
-		if (!email) {
+		if (!data.clientName) {
+			alert('Full name is required');
+			return;
+		} else if (data.clientName.length < 2) {
+			alert('Invalid full name');
+			return;
+		}
+		if (!data.clientEmail) {
 			alert('Email is required');
 			return;
-		} else if (!emailRegex.test(email)) {
+		} else if (!emailRegex.test(data.clientEmail)) {
 			alert('Invalid email');
 			return;
 		}
 
-		setEmailConfirmationStep(false);
+		const [hour, minute] = selectedTime.trim().split(':').map(Number);
+		const formattingTime = dayjs(selectedDate)
+			.hour(hour)
+			.minute(minute)
+			.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+
+		sendClientQueueMutation.mutate({
+			...data,
+			queueTime: formattingTime,
+			serviceId: selectedService,
+			userId: +providerId,
+		});
+	};
+
+	const handleSendConfirmationCode = (code) => {
+		sendConfirmationCodeMutation.mutate(code);
 	};
 
 	const handleChangeDate = (e) => {
 		if (!dayjs(e.$d).isBefore(dayjs())) {
-			setSelectedDate(e.$d);
-			setSelectedDay(days[e.day()]);
+			const localDate = dayjs(e.$d).startOf('day'); // Ensures time is midnight local
+			const isoString = localDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ'); // Custom ISO format with local timezone
+			setSelectedDate(isoString);
+			setSelectedDayName(days[e.day()]);
 		} else {
 			alert('Please choose a valid date');
 		}
@@ -186,6 +252,8 @@ function OrderQueue() {
 				setOpen={setOpenEmailConfirmation}
 				step={emailConfirmationStep}
 				handleSendEmailConfirmation={handleSendEmailConfirmation}
+				handleSendConfirmationCode={handleSendConfirmationCode}
+				timer={timer}
 			/>
 		</Container>
 	);

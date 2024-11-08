@@ -14,8 +14,15 @@ const style = {
 	width: 'min(400px, 95%)',
 };
 
-function EmailPopup({ open, setOpen, step, handleSendEmailConfirmation }) {
-	const [email, setEmail] = useState('');
+function EmailPopup({
+	open,
+	setOpen,
+	step,
+	handleSendEmailConfirmation,
+	handleSendConfirmationCode,
+	timer,
+}) {
+	const [details, setDetails] = useState({ clientName: '', clientEmail: '' });
 	const [code, setCode] = useState('');
 
 	return (
@@ -33,18 +40,35 @@ function EmailPopup({ open, setOpen, step, handleSendEmailConfirmation }) {
 							variant='h3'
 							component='h3'
 						>
-							Enter email for confirmation
+							Enter details
 						</Typography>
 						<TextField
 							type='text'
+							placeholder='Enter full name'
+							value={details.clientName}
+							onChange={(e) =>
+								setDetails({
+									...details,
+									clientName: e.target.value,
+								})
+							}
+							sx={{ width: '100%', marginTop: '16px' }}
+						/>
+						<TextField
+							type='text'
 							placeholder='Enter email'
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
+							value={details.clientEmail}
+							onChange={(e) =>
+								setDetails({
+									...details,
+									clientEmail: e.target.value,
+								})
+							}
 							sx={{ width: '100%', marginBlock: '16px' }}
 						/>
 						<Button
 							variant='contained'
-							onClick={() => handleSendEmailConfirmation(email)}
+							onClick={() => handleSendEmailConfirmation(details)}
 						>
 							Send
 						</Button>
@@ -65,7 +89,22 @@ function EmailPopup({ open, setOpen, step, handleSendEmailConfirmation }) {
 							onChange={(e) => setCode(e.target.value)}
 							sx={{ width: '100%', marginBlock: '16px' }}
 						/>
-						<Button variant='contained'>Send</Button>
+						{timer > 0 ? (
+							<Typography>
+								Time remaining: {Math.floor(timer / 60)}:
+								{(timer % 60).toString().padStart(2, '0')}
+							</Typography>
+						) : (
+							<Typography>Code expired</Typography>
+						)}
+
+						<Button
+							variant='contained'
+							onClick={() => handleSendConfirmationCode(code)}
+							marginTop='8px'
+						>
+							Send
+						</Button>
 					</>
 				)}
 			</Box>
