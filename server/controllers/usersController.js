@@ -42,10 +42,15 @@ export const createUser = async (req, res) => {
 				data: finalWorkingDays,
 			});
 
-			if (workingTimes) return res.status(201).json(user.email);
+			if (workingTimes)
+				return res
+					.status(201)
+					.json({ success: true, data: user.email });
 		}
 
-		return res.status(401).json("Couldn't create user");
+		return res
+			.status(401)
+			.json({ success: false, message: "Couldn't create user" });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -64,7 +69,9 @@ export const loginUser = async (req, res) => {
 	});
 
 	if (!user) {
-		return res.status(401).json('Invalid email');
+		return res
+			.status(401)
+			.json({ success: false, message: 'Invalid email' });
 	}
 
 	try {
@@ -77,15 +84,16 @@ export const loginUser = async (req, res) => {
 				console.log('Salt generation error:', err);
 				return res
 					.status(500)
-					.json({ message: 'Internal server error' });
+					.json({ success: false, message: 'Internal server error' });
 			}
 
 			bcrypt.hash(randomCode, salt, async (err, hash) => {
 				if (err) {
 					console.log('Hashing error:', err);
-					return res
-						.status(500)
-						.json({ message: 'Internal server error' });
+					return res.status(500).json({
+						success: false,
+						message: 'Internal server error',
+					});
 				}
 
 				// Hashing successful, 'hash' contains the hashed password
@@ -99,9 +107,10 @@ export const loginUser = async (req, res) => {
 				});
 
 				if (user) {
-					return res
-						.status(200)
-						.json('Verification code sent to your email');
+					return res.status(201).json({
+						success: true,
+						data: 'Verification code sent to your email',
+					});
 				}
 			});
 		});
@@ -124,18 +133,24 @@ export const verifyLoginCode = async (req, res) => {
 		});
 
 		if (!user) {
-			return res.status(401).json('Invalid email or code');
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid email or code' });
 		}
 
 		const isCodeValid = await bcrypt.compare(code, user.verificationCode);
 
 		if (!isCodeValid) {
-			return res.status(401).json('Invalid code');
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid code' });
 		}
 
 		// Check if the code is expired
 		if (new Date() > user.codeExpiration) {
-			return res.status(401).json('Code has expired');
+			return res
+				.status(401)
+				.json({ success: false, message: 'Code has expired' });
 		}
 
 		// Generate a JWT token after successful verification
@@ -146,7 +161,7 @@ export const verifyLoginCode = async (req, res) => {
 		);
 
 		// Return the token and user data
-		return res.status(200).json(token);
+		return res.status(200).json({ success: true, data: token });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -162,15 +177,21 @@ export const getUserPersonalData = async (req, res) => {
 	try {
 		const user = await prisma.user.findUnique({ where: { id: +id } });
 
-		if (!user) return res.status(401).json('Invalid user id');
+		if (!user)
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid user id' });
 
 		return res.status(200).json({
-			id: user.id,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			email: user.email,
-			phone: user.phone,
-			queueDuration: user.queueDuration,
+			success: true,
+			data: {
+				id: user.id,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				phone: user.phone,
+				queueDuration: user.queueDuration,
+			},
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -189,9 +210,11 @@ export const getUserWorkingDays = async (req, res) => {
 		});
 
 		if (!workingDays)
-			return res.status(401).json("Couldn't get working days");
+			return res
+				.status(401)
+				.json({ success: false, message: "Couldn't get working days" });
 
-		return res.status(200).json(workingDays);
+		return res.status(200).json({ success: true, data: workingDays });
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
@@ -217,16 +240,21 @@ export const updateUserData = async (req, res) => {
 
 		if (user) {
 			return res.status(201).json({
-				id: user.id,
-				firstName: user.firstName,
-				lastName: user.lastName,
-				email: user.email,
-				phone: user.phone,
-				queueDuration: user.queueDuration,
+				success: true,
+				data: {
+					id: user.id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					email: user.email,
+					phone: user.phone,
+					queueDuration: user.queueDuration,
+				},
 			});
 		}
 
-		return res.status(401).json("Couldn't update user");
+		return res
+			.status(401)
+			.json({ success: false, message: "Couldn't update user" });
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
@@ -249,9 +277,12 @@ export const updateUserWorkingDays = async (req, res) => {
 			},
 		});
 
-		if (workingDay) return res.status(200).json(workingDay);
+		if (workingDay)
+			return res.status(201).json({ success: true, data: workingDay });
 
-		return res.status(401).json('Could not update working day');
+		return res
+			.status(401)
+			.json({ success: false, message: 'Could not update working day' });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -273,9 +304,37 @@ export const deleteUserWorkingDay = async (req, res) => {
 			},
 		});
 
-		if (response) return res.status(200).json('Day was deleted !');
+		if (response)
+			return res
+				.status(200)
+				.json({ success: true, data: 'Day was deleted !' });
 
-		return res.status(401).json('Could not delete working day');
+		return res
+			.status(401)
+			.json({ success: false, message: 'Could not delete working day' });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
+export const addUserDayOfWork = async (req, res) => {
+	try {
+		const response = await prisma.workingTimes.create({
+			data: req.body,
+		});
+
+		if (response)
+			return res
+				.status(201)
+				.json({ success: true, data: 'Day was added !' });
+
+		return res
+			.status(401)
+			.json({ success: false, message: 'Could not add working day' });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({

@@ -1,7 +1,8 @@
-import React, { useContext } from 'react';
-import { Box, Container, Stack, Typography } from '@mui/material';
+import React, { useContext, useState } from 'react';
+import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { UserContext } from '../context/userContext';
 import {
+	addUserWorkingDay,
 	deleteUserWorkingDay,
 	getUserPersonalData,
 	getUserWorkingDays,
@@ -13,8 +14,11 @@ import MainTitle from '../components/general/MainTitle';
 import DataField from '../components/personalData/DataField';
 import { StyledLoader } from '../styles/LoaderStyle';
 import WorkingDayField from '../components/personalData/WorkingDayField';
+import WorkingDaySelect from '../components/SignUp/WorkingDaySelect';
+import { days } from '../tools/WeekDays';
 
 function PersonalData() {
+	const [newWorkingDays, setNewWorkingDays] = useState([]);
 	const { loggedUser } = useContext(UserContext);
 	const queryClient = useQueryClient();
 
@@ -31,11 +35,23 @@ function PersonalData() {
 		},
 	});
 
-	const { data: workingDays } = useQuery({
+	const { data: userWorkingDays } = useQuery({
 		queryKey: ['workingDays', loggedUser?.id],
 		queryFn: getUserWorkingDays,
 		onError: (error) => {
 			console.log("Couldn't get user working days", error);
+		},
+	});
+
+	const addWorkingDayMutation = useMutation({
+		mutationFn: addUserWorkingDay,
+		onSuccess: ({ success, data: message }) => {
+			setNewWorkingDays([]);
+			queryClient.invalidateQueries(['workingDays'], { exact: true });
+			if (success) alert(message);
+		},
+		onError: (error) => {
+			console.error('error', error);
 		},
 	});
 
@@ -65,6 +81,25 @@ function PersonalData() {
 		},
 	});
 
+	const handleAddDayOfWork = () => {
+		const temp = [...newWorkingDays];
+		temp.push({ day: '', opening: '', closing: '' });
+		setNewWorkingDays(temp);
+	};
+
+	const handleChangeNewWorkingDays = (event, index) => {
+		const temp = [...newWorkingDays];
+
+		const newDayObj = temp[index];
+		newDayObj[event.target.name] = event.target.value;
+		setNewWorkingDays(temp);
+	};
+
+	const handleDeleteDaySelect = (index) => {
+		const temp = newWorkingDays.filter((dayObj, idx) => idx !== index);
+		setNewWorkingDays(temp);
+	};
+
 	const handleUpdateField = (value) => {
 		updateUserMutation.mutate({ ...value, id: loggedUser.id });
 	};
@@ -75,6 +110,25 @@ function PersonalData() {
 
 	const handleDeleteWorkingDay = (id) => {
 		deleteWorkingDayById.mutate(id);
+	};
+
+	const handleAddWorkingDay = (index) => {
+		if (!newWorkingDays[index].day) {
+			alert('Please choose a day');
+			return;
+		}
+		if (!newWorkingDays[index].opening) {
+			alert('Please choose a start of work');
+			return;
+		}
+		if (!newWorkingDays[index].closing) {
+			alert('Please choose an end of work');
+			return;
+		}
+		addWorkingDayMutation.mutate({
+			userId: loggedUser.id,
+			...newWorkingDays[index],
+		});
 	};
 
 	if (isLoading) return <StyledLoader />;
@@ -118,12 +172,12 @@ function PersonalData() {
 				/>
 			</Stack>
 
-			<Box marginTop='16px'>
+			<Box marginBlock='20px 80px'>
 				<Typography component='h3' variant='h3' marginBottom='8px'>
 					Working Days
 				</Typography>
 
-				{workingDays?.data.map((workingDay, index) => {
+				{userWorkingDays?.data.map((workingDay, index) => {
 					return (
 						<WorkingDayField
 							key={workingDay.id}
@@ -136,6 +190,35 @@ function PersonalData() {
 						/>
 					);
 				})}
+
+				<Box marginBlock='16px'>
+					{newWorkingDays.map((dayObj, index) => {
+						return (
+							<WorkingDaySelect
+								key={index}
+								index={index}
+								days={days}
+								selectedDay={dayObj.day}
+								selectedOpening={dayObj.opening}
+								selectedClosing={dayObj.closing}
+								handleChangeWorkingDays={
+									handleChangeNewWorkingDays
+								}
+								handleDeleteDaySelect={handleDeleteDaySelect}
+								isConfirmAble={true}
+								handleAddWorkingDay={handleAddWorkingDay}
+							/>
+						);
+					})}
+				</Box>
+
+				<Button
+					variant='outlined'
+					onClick={handleAddDayOfWork}
+					sx={{ marginTop: 2 }}
+				>
+					Add day
+				</Button>
 			</Box>
 		</Container>
 	);

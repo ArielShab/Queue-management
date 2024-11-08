@@ -9,6 +9,7 @@ import {
 	Stack,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DoneIcon from '@mui/icons-material/Done';
 
 function WorkingDaySelect({
 	index,
@@ -19,6 +20,8 @@ function WorkingDaySelect({
 	handleChangeWorkingDays,
 	isDeletable = true,
 	handleDeleteDaySelect,
+	isConfirmAble = false,
+	handleAddWorkingDay,
 }) {
 	const hours = [
 		'00:00',
@@ -73,15 +76,10 @@ function WorkingDaySelect({
 
 	return (
 		<Box>
-			<Stack
-				direction='row'
-				alignItems='baseline'
-				columnGap='8px'
-				marginBottom='12px'
-			>
+			<Stack direction='row' alignItems='baseline' marginBottom='12px'>
 				<FormControl
 					variant='standard'
-					sx={{ minWidth: 120, width: '50%' }}
+					sx={{ minWidth: 120, width: '50%', marginRight: '8px' }}
 				>
 					<InputLabel id='working-day'>Day</InputLabel>
 					<Select
@@ -105,7 +103,7 @@ function WorkingDaySelect({
 				</FormControl>
 				<FormControl
 					variant='standard'
-					sx={{ minWidth: 120, width: '50%' }}
+					sx={{ minWidth: 120, width: '50%', marginRight: '8px' }}
 				>
 					<InputLabel id='working-start-work'>
 						Start of work
@@ -131,7 +129,7 @@ function WorkingDaySelect({
 				</FormControl>
 				<FormControl
 					variant='standard'
-					sx={{ minWidth: 120, width: '50%' }}
+					sx={{ minWidth: 120, width: '50%', marginRight: '8px' }}
 				>
 					<InputLabel id='working-end-work'>End of work</InputLabel>
 					<Select
@@ -153,6 +151,11 @@ function WorkingDaySelect({
 						})}
 					</Select>
 				</FormControl>
+				{isConfirmAble && (
+					<IconButton onClick={() => handleAddWorkingDay(index)}>
+						<DoneIcon />
+					</IconButton>
+				)}
 				{isDeletable && (
 					<IconButton onClick={() => handleDeleteDaySelect(index)}>
 						<DeleteIcon />

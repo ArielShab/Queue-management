@@ -9,6 +9,7 @@ import {
 	getUserWorkingDays,
 	updateUserWorkingDays,
 	deleteUserWorkingDay,
+	addUserDayOfWork,
 } from '../controllers/usersController.js';
 
 const router = express.Router();
@@ -39,5 +40,8 @@ router.put('/update-user-working-days', updateUserWorkingDays);
 
 // Delete user working day by id
 router.delete('/delete-user-working-day', deleteUserWorkingDay);
+
+// Add user working day
+router.post('/add-user-working-day', addUserDayOfWork);
 
 export default router;

@@ -19,7 +19,10 @@ export const getProviderQueuesByID = async (req, res) => {
 	});
 
 	if (!opening || !closing)
-		return res.status(401).json('Error getting opening or closing time');
+		return res.status(401).json({
+			success: false,
+			message: 'Error getting opening or closing time',
+		});
 
 	// Calculate minutes between opening and closing and return all the queues time
 	let [startHour, startMinute] = opening.trim().split(':').map(Number);
@@ -42,5 +45,5 @@ export const getProviderQueuesByID = async (req, res) => {
 		availableQueues.push(formattedTime);
 	}
 
-	return res.status(200).json(availableQueues);
+	return res.status(200).json({ success: true, data: availableQueues });
 };

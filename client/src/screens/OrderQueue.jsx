@@ -76,6 +76,15 @@ function OrderQueue() {
 		setEmailConfirmationStep(false);
 	};
 
+	const handleChangeDate = (e) => {
+		if (!dayjs(e.$d).isBefore(dayjs())) {
+			setSelectedDate(e.$d);
+			setSelectedDay(days[e.day()]);
+		} else {
+			alert('Please choose a valid date');
+		}
+	};
+
 	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
 
@@ -96,12 +105,7 @@ function OrderQueue() {
 			<Typography>Choose date:</Typography>
 
 			<LocalizationProvider dateAdapter={AdapterDayjs}>
-				<DateCalendar
-					onChange={(e) => {
-						setSelectedDate(e.$d);
-						setSelectedDay(days[e.day()]);
-					}}
-				/>
+				<DateCalendar onChange={(e) => handleChangeDate(e)} />
 			</LocalizationProvider>
 			{allQueues?.data.length && (
 				<>

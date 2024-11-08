@@ -9,9 +9,12 @@ export const getUserServicesById = async (req, res) => {
 			where: { userId: +id },
 		});
 
-		if (!services) return res.status(401).json('Invalid user id');
+		if (!services)
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid user id' });
 
-		return res.status(200).json(services);
+		return res.status(200).json({ success: true, data: services });
 	} catch (error) {
 		return res.status(500).json({
 			success: false,
@@ -26,11 +29,16 @@ export const createUserServicesById = async (req, res) => {
 			data: req.body,
 		});
 
-		if (service) return res.status(201).json(service);
+		if (service)
+			return res.status(201).json({ success: true, data: service });
 
-		return res.status(401).json("Couldn't create service");
+		return res
+			.status(401)
+			.json({ success: false, message: "Couldn't create service" });
 	} catch (error) {
-		return res.status(500).json({ message: 'Internal server error' });
+		return res
+			.status(500)
+			.json({ success: false, message: 'Internal server error' });
 	}
 };
 
@@ -44,10 +52,17 @@ export const updateUserService = async (req, res) => {
 			},
 		});
 
-		if (service) return res.status(201).json('Service updated !');
-		return res.status(401).json("Couldn't update service");
+		if (service)
+			return res
+				.status(201)
+				.json({ success: true, data: 'Service updated !' });
+		return res
+			.status(401)
+			.json({ success: false, message: "Couldn't update service" });
 	} catch (error) {
-		return res.status(500).json({ message: 'Internal server error' });
+		return res
+			.status(500)
+			.json({ success: false, message: 'Internal server error' });
 	}
 };
 
@@ -59,9 +74,16 @@ export const deleteUserService = async (req, res) => {
 			where: { id: +id },
 		});
 
-		if (response) return res.status(200).json('Service deleted !');
-		return res.status(401).json("Couldn't delete service");
+		if (response)
+			return res
+				.status(200)
+				.json({ success: true, data: 'Service deleted !' });
+		return res
+			.status(401)
+			.json({ success: false, message: "Couldn't delete service" });
 	} catch (error) {
-		return res.status(500).json({ message: 'Internal server error' });
+		return res
+			.status(500)
+			.json({ success: false, message: 'Internal server error' });
 	}
 };
