@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	Box,
 	Button,
@@ -16,8 +16,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-	fetchUserQueues,
-	sendClientConfirmationCode,
+	fetchUserQueuesTimes,
+	sendClientVerificationCode,
 	sendClientQueueData,
 } from '../api/queuesApi';
 import dayjs from 'dayjs';
@@ -36,15 +36,23 @@ function OrderQueue() {
 	const { id: providerId } = useParams();
 	const [selectedDate, setSelectedDate] = useState(null);
 	const [selectedTime, setSelectedTime] = useState('');
+	const [formattingTime, setFormattingTime] = useState('');
 	const [selectedService, setSelectedService] = useState('');
 	const [selectedDayName, setSelectedDayName] = useState('');
-	const [openEmailConfirmation, setOpenEmailConfirmation] = useState(false);
-	const [emailConfirmationStep, setEmailConfirmationStep] = useState(true);
+	const [openEmailVerification, setOpenEmailVerification] = useState(false);
+	const [emailVerificationStep, setEmailVerificationStep] = useState(true);
 	const [timer, setTimer] = useState(300);
 
 	const { data: allQueues } = useQuery({
-		queryKey: ['queues', { providerId, selectedDayName }],
-		queryFn: fetchUserQueues,
+		queryKey: [
+			'queues',
+			{
+				providerId,
+				selectedDayName,
+				selectedDate: dayjs(selectedDate).format('DD/MM/YYYY'),
+			},
+		],
+		queryFn: fetchUserQueuesTimes,
 		enabled: selectedDate !== null,
 		onError: (error) => {
 			console.log(error);
@@ -75,7 +83,7 @@ function OrderQueue() {
 	const sendClientQueueMutation = useMutation({
 		mutationFn: sendClientQueueData,
 		onSuccess: (data) => {
-			setEmailConfirmationStep(false);
+			setEmailVerificationStep(false);
 			const interval = setInterval(() => {
 				setTimer((prev) => {
 					if (prev <= 1) clearInterval(interval);
@@ -88,23 +96,20 @@ function OrderQueue() {
 		},
 	});
 
-	const sendConfirmationCodeMutation = useMutation({
-		mutationFn: sendClientConfirmationCode,
+	const sendVerificationCodeMutation = useMutation({
+		mutationFn: sendClientVerificationCode,
 		onSuccess: (data) => {
-			setEmailConfirmationStep(false);
-			const interval = setInterval(() => {
-				setTimer((prev) => {
-					if (prev <= 1) clearInterval(interval);
-					return prev - 1;
-				});
-			}, 1000);
+			if (data.success) {
+				setOpenEmailVerification(false);
+				alert(data.data);
+			}
 		},
 		onError: (error) => {
 			console.error('error', error);
 		},
 	});
 
-	const handleSendEmailConfirmation = (data) => {
+	const handleSendEmailVerification = (data) => {
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
 
 		if (!data.clientName) {
@@ -122,12 +127,6 @@ function OrderQueue() {
 			return;
 		}
 
-		const [hour, minute] = selectedTime.trim().split(':').map(Number);
-		const formattingTime = dayjs(selectedDate)
-			.hour(hour)
-			.minute(minute)
-			.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
-
 		sendClientQueueMutation.mutate({
 			...data,
 			queueTime: formattingTime,
@@ -136,8 +135,12 @@ function OrderQueue() {
 		});
 	};
 
-	const handleSendConfirmationCode = (code) => {
-		sendConfirmationCodeMutation.mutate(code);
+	const handleSendVerificationCode = (code) => {
+		sendVerificationCodeMutation.mutate({
+			queueTime: formattingTime,
+			userId: +providerId,
+			verificationCode: code,
+		});
 	};
 
 	const handleChangeDate = (e) => {
@@ -150,6 +153,18 @@ function OrderQueue() {
 			alert('Please choose a valid date');
 		}
 	};
+
+	useEffect(() => {
+		if (selectedTime) {
+			const [hour, minute] = selectedTime.trim().split(':').map(Number);
+			const tempFormattingTime = dayjs(selectedDate)
+				.hour(hour)
+				.minute(minute)
+				.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+
+			setFormattingTime(tempFormattingTime);
+		}
+	}, [selectedTime]);
 
 	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
@@ -239,7 +254,7 @@ function OrderQueue() {
 					<Box textAlign='end' marginBottom='30px'>
 						<Button
 							variant='contained'
-							onClick={() => setOpenEmailConfirmation(true)}
+							onClick={() => setOpenEmailVerification(true)}
 							sx={{ mt: 3 }}
 						>
 							Book queue
@@ -248,11 +263,11 @@ function OrderQueue() {
 				</>
 			)}
 			<EmailPopup
-				open={openEmailConfirmation}
-				setOpen={setOpenEmailConfirmation}
-				step={emailConfirmationStep}
-				handleSendEmailConfirmation={handleSendEmailConfirmation}
-				handleSendConfirmationCode={handleSendConfirmationCode}
+				open={openEmailVerification}
+				setOpen={setOpenEmailVerification}
+				step={emailVerificationStep}
+				handleSendEmailVerification={handleSendEmailVerification}
+				handleSendVerificationCode={handleSendVerificationCode}
 				timer={timer}
 			/>
 		</Container>

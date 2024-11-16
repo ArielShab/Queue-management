@@ -9,7 +9,13 @@ const generateCode = () =>
 	Math.floor(100000 + Math.random() * 900000).toString();
 
 export const getProviderQueuesByID = async (req, res) => {
-	const { userId, day } = req.query;
+	const { userId, day, date } = req.query;
+
+	const [dateDay, month, year] = date.trim().split('/');
+	const selectedDateStart = new Date(`${year}-${month}-${dateDay}`);
+	const selectedDateEnd = new Date(selectedDateStart);
+	selectedDateEnd.setHours(23, 59, 59, 999);
+	// .toISOString()
 
 	try {
 		const { queueDuration } = await prisma.user.findUnique({
@@ -23,6 +29,19 @@ export const getProviderQueuesByID = async (req, res) => {
 		const { opening, closing } = await prisma.workingTimes.findFirst({
 			where: {
 				AND: [{ userId: +userId }, { day: day }],
+			},
+		});
+		const bookedQueues = await prisma.queue.findMany({
+			where: {
+				AND: [
+					{
+						queueTime: {
+							gte: selectedDateStart,
+							lte: selectedDateEnd,
+						},
+					},
+					{ queueApproved: true },
+				],
 			},
 		});
 
@@ -52,7 +71,17 @@ export const getProviderQueuesByID = async (req, res) => {
 			let formattedTime = `${hours}:${minutes
 				.toString()
 				.padStart(2, '0')}`;
-			availableQueues.push(formattedTime);
+
+			const bookedQueue = bookedQueues.find((queue) => {
+				const formattedQueue = `${queue.queueTime.getHours()}:${queue.queueTime
+					.getMinutes()
+					.toString()
+					.padStart(2, '0')}`;
+
+				return formattedQueue === formattedTime;
+			});
+
+			if (!bookedQueue) availableQueues.push(formattedTime);
 		}
 
 		return res.status(200).json({ success: true, data: availableQueues });
@@ -89,29 +118,146 @@ export const postClientQueueData = async (req, res) => {
 
 				// Hashing successful, 'hash' contains the hashed password
 				console.log('randomCode', randomCode);
-				const queue = await prisma.queue.create({
-					data: {
-						...req.body,
-						verificationCode: hash,
-						codeExpiration: expiresAt,
+
+				const queue = await prisma.queue.findFirst({
+					where: {
+						queueTime: req.body.queueTime,
+						userId: req.body.userId,
 					},
 				});
 
 				if (queue) {
-					return res.status(201).json({
-						success: true,
-						data: 'Verification code sent to your email',
+					const newQueue = await prisma.queue.update({
+						where: {
+							id: queue.id,
+						},
+						data: {
+							...req.body,
+							verificationCode: hash,
+							codeExpiration: expiresAt,
+						},
 					});
+
+					if (newQueue) {
+						return res.status(201).json({
+							success: true,
+							data: 'Verification code sent to your email',
+						});
+					}
+				} else {
+					queue = await prisma.queue.create({
+						data: {
+							...req.body,
+							verificationCode: hash,
+							codeExpiration: expiresAt,
+						},
+					});
+
+					if (queue) {
+						return res.status(201).json({
+							success: true,
+							data: 'Verification code sent to your email',
+						});
+					}
 				}
 
 				return res
 					.status(401)
-					.json({ success: false, message: 'Could not save ququq' });
+					.json({ success: false, message: 'Could not save queue' });
 			});
 		});
 	} catch (error) {
 		return res
 			.status(500)
 			.json({ success: false, message: 'Internal server error' });
+	}
+};
+
+export const verifyClientCode = async (req, res) => {
+	const { queueTime, userId, verificationCode } = req.body;
+
+	try {
+		// Fetch user
+		const queue = await prisma.queue.findFirst({
+			where: { queueTime, userId },
+		});
+
+		if (!queue) {
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid code' });
+		}
+
+		const isCodeValid = await bcrypt.compare(
+			verificationCode,
+			queue.verificationCode,
+		);
+
+		if (!isCodeValid) {
+			return res
+				.status(401)
+				.json({ success: false, message: 'Invalid code' });
+		}
+
+		// Check if the code is expired
+		if (new Date() > queue.codeExpiration) {
+			return res
+				.status(401)
+				.json({ success: false, message: 'Code has expired' });
+		}
+
+		const updatedQueue = await prisma.queue.update({
+			where: { id: queue.id },
+			data: {
+				queueApproved: true,
+			},
+		});
+
+		if (!updatedQueue) {
+			return res
+				.status(401)
+				.json({ success: false, message: 'Could not book queue' });
+		}
+
+		// Return the token and user data
+		return res.status(200).json({ success: true, data: 'Queue booked' });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
+	}
+};
+
+export const getBookedQueues = async (req, res) => {
+	const { id } = req.query;
+
+	try {
+		const queues = await prisma.queue.findMany({
+			where: {
+				AND: [{ userId: +id }, { queueApproved: true }],
+			},
+			select: {
+				id: true,
+				clientEmail: true,
+				clientName: true,
+				queueTime: true,
+			},
+		});
+
+		if (!queues)
+			return res.status(401).json({
+				success: false,
+				message: 'Could not get booked queues',
+			});
+
+		return res.status(200).json({ success: true, data: queues });
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			success: false,
+			message: 'Internal server error',
+		});
 	}
 };

@@ -18,8 +18,8 @@ function EmailPopup({
 	open,
 	setOpen,
 	step,
-	handleSendEmailConfirmation,
-	handleSendConfirmationCode,
+	handleSendEmailVerification,
+	handleSendVerificationCode,
 	timer,
 }) {
 	const [details, setDetails] = useState({ clientName: '', clientEmail: '' });
@@ -68,7 +68,7 @@ function EmailPopup({
 						/>
 						<Button
 							variant='contained'
-							onClick={() => handleSendEmailConfirmation(details)}
+							onClick={() => handleSendEmailVerification(details)}
 						>
 							Send
 						</Button>
@@ -100,7 +100,7 @@ function EmailPopup({
 
 						<Button
 							variant='contained'
-							onClick={() => handleSendConfirmationCode(code)}
+							onClick={() => handleSendVerificationCode(code)}
 							marginTop='8px'
 						>
 							Send
