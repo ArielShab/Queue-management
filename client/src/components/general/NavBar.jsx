@@ -26,6 +26,12 @@ function NavBar() {
 							<NavLink to='sign-out'>Sign Out</NavLink>
 						) : (
 							<>
+								<NavLink
+									to='my-queues'
+									style={{ marginInlineEnd: 'auto' }}
+								>
+									<PersonIcon />
+								</NavLink>
 								<NavLink to='sign-in'>Sign In</NavLink>
 								<NavLink to='sign-up'>Sign Up</NavLink>
 							</>
@@ -35,7 +41,13 @@ function NavBar() {
 			</StyledNavBar>
 			{loggedUser?.id && (
 				<Paper
-					sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }}
+					sx={{
+						position: 'fixed',
+						bottom: 0,
+						left: 0,
+						right: 0,
+						zIndex: 1,
+					}}
 					elevation={3}
 				>
 					<BottomNavigation

@@ -5,6 +5,7 @@ import ProtectedRoute from './tools/ProtectedRoute';
 
 const SignIn = lazy(() => import('./screens/SignIn'));
 const SignUp = lazy(() => import('./screens/SignUp'));
+const MyQueues = lazy(() => import('./screens/MyQueues'));
 const PersonalData = lazy(() => import('./screens/PersonalData'));
 const Services = lazy(() => import('./screens/Services'));
 const Queues = lazy(() => import('./screens/Queues'));
@@ -31,6 +32,14 @@ function App() {
 						element={
 							<Suspense fallback={<div>Loading...</div>}>
 								<SignUp />
+							</Suspense>
+						}
+					/>
+					<Route
+						path='/my-queues'
+						element={
+							<Suspense fallback={<div>Loading...</div>}>
+								<MyQueues />
 							</Suspense>
 						}
 					/>

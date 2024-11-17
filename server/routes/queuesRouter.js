@@ -1,5 +1,6 @@
 import express from 'express';
 import {
+	deleteQueueById,
 	getBookedQueues,
 	getProviderQueuesByID,
 	postClientQueueData,
@@ -18,5 +19,8 @@ router.post('/send-client-queue-data', postClientQueueData);
 router.post('/verify-client-code', verifyClientCode);
 
 router.get('/get-booked-queues', getBookedQueues);
+
+// Delete queue by id
+router.delete('/delete-queue-by-id', deleteQueueById);
 
 export default router;

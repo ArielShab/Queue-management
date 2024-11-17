@@ -261,3 +261,23 @@ export const getBookedQueues = async (req, res) => {
 		});
 	}
 };
+
+export const deleteQueueById = async (req, res) => {
+	const { id } = req.query;
+
+	try {
+		const deletedQueue = await prisma.queue.delete({ where: { id: +id } });
+
+		if (!deletedQueue) {
+			return res
+				.status(401)
+				.json({ success: false, message: 'Could not delete queue' });
+		}
+
+		return res.status(200).json({ success: true, data: deletedQueue });
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ success: false, message: 'Internal server error' });
+	}
+};

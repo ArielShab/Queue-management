@@ -13,7 +13,7 @@ const theme = createTheme({
 	},
 	typography: {
 		h1: {
-			fontSize: 'clamp(50px, 7vw, 70px)',
+			fontSize: 'clamp(40px, 7vw, 70px)',
 			fontWeight: 700,
 			lineHeight: 1,
 		},

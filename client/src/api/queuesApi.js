@@ -1,4 +1,4 @@
-import { BASE_URL, fetchGet, fetchPost } from './index';
+import { BASE_URL, fetchDelete, fetchGet, fetchPost } from './index';
 
 export const fetchUserQueuesTimes = async ({ queryKey }) => {
 	return await fetchGet(
@@ -18,4 +18,8 @@ export const fetchUserBookedQueues = async ({ queryKey }) => {
 	return await fetchGet(
 		`${BASE_URL}/queues/get-booked-queues?id=${queryKey[1]}`,
 	);
+};
+
+export const deleteBookedQueue = async (id) => {
+	return await fetchDelete(`${BASE_URL}/queues/delete-queue-by-id?id=${id}`);
 };
