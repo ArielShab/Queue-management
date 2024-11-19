@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 import bcrypt from 'bcrypt';
+import dayjs from 'dayjs';
 
 const saltRounds = 10;
 
@@ -119,7 +120,7 @@ export const postClientQueueData = async (req, res) => {
 				// Hashing successful, 'hash' contains the hashed password
 				console.log('randomCode', randomCode);
 
-				const queue = await prisma.queue.findFirst({
+				let queue = await prisma.queue.findFirst({
 					where: {
 						queueTime: req.body.queueTime,
 						userId: req.body.userId,
@@ -246,13 +247,25 @@ export const getBookedQueues = async (req, res) => {
 			},
 		});
 
-		if (!queues)
+		if (!queues) {
 			return res.status(401).json({
 				success: false,
 				message: 'Could not get booked queues',
 			});
+		}
 
-		return res.status(200).json({ success: true, data: queues });
+		const pastQueues = [];
+		const futureQueues = [];
+
+		queues.forEach((queue) => {
+			if (dayjs(queue.queueTime).isAfter(dayjs()))
+				futureQueues.push(queue);
+			else pastQueues.push(queue);
+		});
+
+		return res
+			.status(200)
+			.json({ success: true, data: { pastQueues, futureQueues } });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({

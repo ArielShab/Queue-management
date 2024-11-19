@@ -30,7 +30,7 @@ function NavBar() {
 									to='my-queues'
 									style={{ marginInlineEnd: 'auto' }}
 								>
-									<PersonIcon />
+									My Queues
 								</NavLink>
 								<NavLink to='sign-in'>Sign In</NavLink>
 								<NavLink to='sign-up'>Sign Up</NavLink>
