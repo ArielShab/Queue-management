@@ -81,8 +81,6 @@ function SignUp() {
 		createUserMutation.mutate({ fieldsValues, workingDays });
 	};
 
-	console.log('fieldsErrors', fieldsErrors);
-
 	const validate = (values) => {
 		const errors = {};
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;

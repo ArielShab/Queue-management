@@ -101,7 +101,7 @@ function SignIn() {
 		if (!email) {
 			errors.email = 'Email is required';
 		} else if (!emailRegex.test(email)) {
-			errors.email = 'Email Invalid email';
+			errors.email = 'Invalid email';
 		}
 		setFieldsErrors(errors);
 

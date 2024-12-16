@@ -16,10 +16,13 @@ import { StyledLoader } from '../styles/LoaderStyle';
 import WorkingDayField from '../components/personalData/WorkingDayField';
 import WorkingDaySelect from '../components/SignUp/WorkingDaySelect';
 import { days } from '../tools/WeekDays';
+import { DialogContext } from '../context/DialogContext';
 
 function PersonalData() {
 	const [newWorkingDays, setNewWorkingDays] = useState([]);
 	const { loggedUser } = useContext(UserContext);
+	const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
+		useContext(DialogContext);
 	const queryClient = useQueryClient();
 
 	const {
@@ -77,7 +80,6 @@ function PersonalData() {
 		mutationFn: deleteUserWorkingDay,
 		onSuccess: (data) => {
 			queryClient.invalidateQueries(['workingDays'], { exact: true });
-			console.log('data', data);
 		},
 	});
 
@@ -109,6 +111,9 @@ function PersonalData() {
 	};
 
 	const handleDeleteWorkingDay = (id) => {
+		// handleOpenDialog();
+		// handleDialogText('Are you sure you want to delete this day ?');
+		// handleSetDialogFunction();
 		deleteWorkingDayById.mutate(id);
 	};
 

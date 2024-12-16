@@ -23,3 +23,7 @@ export const fetchUserBookedQueues = async ({ queryKey }) => {
 export const deleteBookedQueue = async (id) => {
 	return await fetchDelete(`${BASE_URL}/queues/delete-queue-by-id?id=${id}`);
 };
+
+// export const fetchClientQueues = async (body) => {
+// 	return await fetchPost(`${BASE_URL}/queues/get-client-queues`);
+// }

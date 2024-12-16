@@ -7,6 +7,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { UserContextProvider } from './context/userContext';
 import theme from './styles/CustomTheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DialogContextProvider } from './context/DialogContext';
 
 const queryClient = new QueryClient();
 
@@ -16,8 +17,10 @@ root.render(
 		<ThemeProvider theme={theme}>
 			<QueryClientProvider client={queryClient}>
 				<UserContextProvider>
-					<CssBaseline enableColorScheme />
-					<App />
+					<DialogContextProvider>
+						<CssBaseline enableColorScheme />
+						<App />
+					</DialogContextProvider>
 				</UserContextProvider>
 			</QueryClientProvider>
 		</ThemeProvider>

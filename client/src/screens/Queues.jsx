@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Box, Container, Stack, Tab, Tabs } from '@mui/material';
+import { Box, Container, Stack, Tab, Tabs, Typography } from '@mui/material';
 import MainTitle from '../components/general/MainTitle';
 import { UserContext } from '../context/userContext';
 import { deleteBookedQueue, fetchUserBookedQueues } from '../api/queuesApi';
@@ -18,8 +18,6 @@ function Queues() {
 			console.log('Could not get queues', error);
 		},
 	});
-
-	console.log('queues', queues);
 
 	const deleteQueueMutation = useMutation({
 		mutationFn: deleteBookedQueue,
@@ -42,7 +40,34 @@ function Queues() {
 		setQueuesToView(newQueueToView);
 	};
 
-	console.log('queuesToView', queuesToView);
+	const renderFutureQueues = () => {
+		if (queues?.data.futureQueues.length) {
+			return queues?.data.futureQueues.map((queue, index) => {
+				return (
+					<BookedQueue
+						key={queue.id}
+						queue={queue}
+						index={index}
+						handleDeleteQueue={handleDeleteQueue}
+					/>
+				);
+			});
+		} else return <Typography variant='h3'>No future queues</Typography>;
+	};
+	const renderPastQueues = () => {
+		if (queues?.data.pastQueues.length) {
+			return queues?.data.pastQueues.map((queue, index) => {
+				return (
+					<BookedQueue
+						key={queue.id}
+						queue={queue}
+						index={index}
+						handleDeleteQueue={handleDeleteQueue}
+					/>
+				);
+			});
+		} else return <Typography variant='h3'>No past queues</Typography>;
+	};
 
 	return (
 		<Container>
@@ -60,27 +85,7 @@ function Queues() {
 			</Box>
 
 			<Stack marginTop='24px' rowGap='16px'>
-				{queuesToView === 0
-					? queues?.data.futureQueues.map((queue, index) => {
-							return (
-								<BookedQueue
-									key={queue.id}
-									queue={queue}
-									index={index}
-									handleDeleteQueue={handleDeleteQueue}
-								/>
-							);
-					  })
-					: queues?.data.pastQueues.map((queue, index) => {
-							return (
-								<BookedQueue
-									key={queue.id}
-									queue={queue}
-									index={index}
-									handleDeleteQueue={handleDeleteQueue}
-								/>
-							);
-					  })}
+				{queuesToView === 0 ? renderFutureQueues() : renderPastQueues()}
 			</Stack>
 		</Container>
 	);

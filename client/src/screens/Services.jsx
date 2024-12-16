@@ -36,7 +36,6 @@ function Services() {
 		mutationFn: createUserService,
 		onSuccess: (data) => {
 			queryClient.invalidateQueries(['services'], { exact: true });
-			console.log('data', data);
 		},
 	});
 
@@ -44,7 +43,6 @@ function Services() {
 		mutationFn: updateUserService,
 		onSuccess: (data) => {
 			queryClient.invalidateQueries(['services'], { exact: true });
-			console.log('data', data);
 		},
 	});
 
@@ -52,7 +50,6 @@ function Services() {
 		mutationFn: deleteUserService,
 		onSuccess: (data) => {
 			queryClient.invalidateQueries(['services'], { exact: true });
-			console.log('data', data);
 		},
 	});
 
