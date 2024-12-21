@@ -13,11 +13,14 @@ import { StyledLoader } from '../styles/LoaderStyle';
 import { Box } from '@mui/system';
 import AddServiceField from '../components/Services/AddServiceField';
 import ServiceField from '../components/Services/ServiceField';
+import { DialogContext } from '../context/DialogContext';
 
 function Services() {
 	const { loggedUser } = useContext(UserContext);
 	const [isAddService, setIsAddService] = useState(false);
 	const queryClient = useQueryClient();
+	const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
+		useContext(DialogContext);
 
 	const {
 		data: services,
@@ -58,7 +61,10 @@ function Services() {
 	};
 
 	const handleDeleteService = (serviceId) => {
-		deleteServiceMutation.mutate(serviceId);
+		handleOpenDialog(true);
+		handleDialogText('Are you sure you want to delete this service ?');
+		handleSetDialogFunction(() => deleteServiceMutation.mutate(serviceId));
+		// deleteServiceMutation.mutate(serviceId);
 	};
 
 	if (isLoading) return <StyledLoader />;

@@ -171,7 +171,7 @@ function OrderQueue() {
 
 	return (
 		<Container>
-			<MainTitle title='Book queue' />
+			<MainTitle title='Book a queue' />
 
 			<Box marginBottom='20px'>
 				<Typography marginBottom='8px' fontWeight='600'>
@@ -188,7 +188,7 @@ function OrderQueue() {
 			<LocalizationProvider dateAdapter={AdapterDayjs}>
 				<DateCalendar onChange={(e) => handleChangeDate(e)} />
 			</LocalizationProvider>
-			{allQueues?.data.length && (
+			{allQueues?.data.length ? (
 				<>
 					<Typography component='h3' variant='h3' marginBottom='16px'>
 						{`Date: ${dayjs(selectedDate).format('DD/MM/YYYY')}`}
@@ -261,6 +261,10 @@ function OrderQueue() {
 						</Button>
 					</Box>
 				</>
+			) : (
+				<Typography variant='h1' component='h1'>
+					''
+				</Typography>
 			)}
 			<EmailPopup
 				open={openEmailVerification}

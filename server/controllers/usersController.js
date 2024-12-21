@@ -295,8 +295,6 @@ export const updateUserWorkingDays = async (req, res) => {
 export const deleteUserWorkingDay = async (req, res) => {
 	const { id } = req.query;
 
-	console.log('id', id);
-
 	try {
 		const response = await prisma.workingTimes.delete({
 			where: {

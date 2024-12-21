@@ -1,6 +1,7 @@
 import { BASE_URL, fetchDelete, fetchGet, fetchPost } from './index';
 
 export const fetchUserQueuesTimes = async ({ queryKey }) => {
+	console.log('queryKey', queryKey);
 	return await fetchGet(
 		`${BASE_URL}/queues?userId=${queryKey[1].providerId}&day=${queryKey[1].selectedDayName}&date=${queryKey[1].selectedDate}`,
 	);

@@ -13,8 +13,6 @@ function PopupDialog() {
 	const { openDialog, dialogText, dialogFunction, handleCloseDialog } =
 		useContext(DialogContext);
 
-	console.log('dialogFunction', dialogFunction);
-
 	return (
 		<Dialog
 			open={openDialog}

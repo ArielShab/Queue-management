@@ -52,10 +52,11 @@ export const updateUserService = async (req, res) => {
 			},
 		});
 
-		if (service)
+		if (service) {
 			return res
 				.status(201)
 				.json({ success: true, data: 'Service updated !' });
+		}
 		return res
 			.status(401)
 			.json({ success: false, message: "Couldn't update service" });
@@ -70,14 +71,31 @@ export const deleteUserService = async (req, res) => {
 	const { id } = req.query;
 
 	try {
-		const response = await prisma.service.delete({
-			where: { id: +id },
+		const serviceQueues = await prisma.queue.findMany({
+			where: { serviceId: +id },
 		});
 
-		if (response)
+		console.log('serviceQueues', serviceQueues);
+
+		if (serviceQueues.length) {
+			return res.status(401).json({
+				success: false,
+				message: "Can't delete service of existing queues",
+			});
+		}
+
+		const response = await prisma.service.delete({
+			where: {
+				id: +id,
+			},
+		});
+
+		if (response) {
 			return res
 				.status(200)
 				.json({ success: true, data: 'Service deleted !' });
+		}
+
 		return res
 			.status(401)
 			.json({ success: false, message: "Couldn't delete service" });

@@ -27,11 +27,23 @@ export const getProviderQueuesByID = async (req, res) => {
 				queueDuration: true,
 			},
 		});
-		const { opening, closing } = await prisma.workingTimes.findFirst({
+
+		const workingTimes = await prisma.workingTimes.findFirst({
 			where: {
 				AND: [{ userId: +userId }, { day: day }],
 			},
 		});
+
+		if (!workingTimes) {
+			return res.status(401).json({
+				success: false,
+				message: 'Not available at the specific date',
+			});
+		}
+
+		// Get opening and closing hours for the selected day
+		const { opening, closing } = workingTimes;
+
 		const bookedQueues = await prisma.queue.findMany({
 			where: {
 				AND: [
@@ -46,11 +58,12 @@ export const getProviderQueuesByID = async (req, res) => {
 			},
 		});
 
-		if (!opening || !closing)
-			return res.status(401).json({
-				success: false,
-				message: 'Error getting opening or closing time',
-			});
+		// if (!opening || !closing) {
+		// 	return res.status(401).json({
+		// 		success: false,
+		// 		message: 'Error getting opening or closing time',
+		// 	});
+		// }
 
 		// Calculate minutes between opening and closing and return all the queues time
 		let [startHour, startMinute] = opening.trim().split(':').map(Number);

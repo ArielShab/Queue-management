@@ -13,6 +13,7 @@ export const DialogContextProvider = ({ children }) => {
 
 	const handleCloseDialog = () => {
 		setOpenDialog(false);
+		setDialogFunction(null); // Reset the function after use
 	};
 
 	const handleDialogText = (title) => {
@@ -20,15 +21,15 @@ export const DialogContextProvider = ({ children }) => {
 	};
 
 	const handleSetDialogFunction = (func) => {
-		setDialogFunction(func);
+		setDialogFunction(() => func);
 	};
 
 	const DialogContextData = {
 		openDialog,
 		dialogText,
 		dialogFunction,
-		handleDialogText,
 		handleOpenDialog,
+		handleDialogText,
 		handleCloseDialog,
 		handleSetDialogFunction,
 	};

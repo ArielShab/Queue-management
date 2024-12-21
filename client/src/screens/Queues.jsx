@@ -5,11 +5,14 @@ import MainTitle from '../components/general/MainTitle';
 import { UserContext } from '../context/userContext';
 import { deleteBookedQueue, fetchUserBookedQueues } from '../api/queuesApi';
 import BookedQueue from '../components/queues/BookedQueue';
+import { DialogContext } from '../context/DialogContext';
 
 function Queues() {
 	const [queuesToView, setQueuesToView] = useState(0);
 	const { loggedUser } = useContext(UserContext);
 	const queryClient = useQueryClient();
+	const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
+		useContext(DialogContext);
 
 	const { data: queues } = useQuery({
 		queryKey: ['queues', loggedUser.id],
@@ -33,7 +36,9 @@ function Queues() {
 	});
 
 	const handleDeleteQueue = (id) => {
-		deleteQueueMutation.mutate(id);
+		handleOpenDialog(true);
+		handleDialogText('Are you sure you want to delete this queue ?');
+		handleSetDialogFunction(() => deleteQueueMutation.mutate(id));
 	};
 
 	const handleChange = (event, newQueueToView) => {
@@ -58,12 +63,7 @@ function Queues() {
 		if (queues?.data.pastQueues.length) {
 			return queues?.data.pastQueues.map((queue, index) => {
 				return (
-					<BookedQueue
-						key={queue.id}
-						queue={queue}
-						index={index}
-						handleDeleteQueue={handleDeleteQueue}
-					/>
+					<BookedQueue key={queue.id} queue={queue} index={index} />
 				);
 			});
 		} else return <Typography variant='h3'>No past queues</Typography>;

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { UserContext } from '../context/userContext';
 import {
@@ -19,6 +19,7 @@ import { days } from '../tools/WeekDays';
 import { DialogContext } from '../context/DialogContext';
 
 function PersonalData() {
+	const [workingDays, setWorkingDays] = useState([]);
 	const [newWorkingDays, setNewWorkingDays] = useState([]);
 	const { loggedUser } = useContext(UserContext);
 	const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
@@ -111,10 +112,9 @@ function PersonalData() {
 	};
 
 	const handleDeleteWorkingDay = (id) => {
-		// handleOpenDialog();
-		// handleDialogText('Are you sure you want to delete this day ?');
-		// handleSetDialogFunction();
-		deleteWorkingDayById.mutate(id);
+		handleOpenDialog();
+		handleDialogText('Are you sure you want to delete this day ?');
+		handleSetDialogFunction(() => deleteWorkingDayById.mutate(id));
 	};
 
 	const handleAddWorkingDay = (index) => {
@@ -135,6 +135,17 @@ function PersonalData() {
 			...newWorkingDays[index],
 		});
 	};
+
+	const handleSortWorkingDays = () => {
+		const sortedArray = userWorkingDays?.data.sort(
+			(day1, day2) => days.indexOf(day1.day) - days.indexOf(day2.day),
+		);
+		setWorkingDays(sortedArray);
+	};
+
+	useEffect(() => {
+		handleSortWorkingDays();
+	}, [userWorkingDays]);
 
 	if (isLoading) return <StyledLoader />;
 	if (isError) return <p>{JSON.stringify(error)}</p>;
@@ -182,7 +193,7 @@ function PersonalData() {
 					Working Days
 				</Typography>
 
-				{userWorkingDays?.data.map((workingDay, index) => {
+				{workingDays?.map((workingDay, index) => {
 					return (
 						<WorkingDayField
 							key={workingDay.id}

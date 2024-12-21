@@ -14,12 +14,14 @@ function BookedQueue({ queue, index, handleDeleteQueue }) {
 				)}`}</Typography>
 				<Typography>{`${queue.clientName} - ${queue.clientEmail}`}</Typography>
 			</Box>
-			<IconButton
-				onClick={() => handleDeleteQueue(queue.id)}
-				sx={{ padding: 'unset' }}
-			>
-				<DeleteIcon />
-			</IconButton>
+			{handleDeleteQueue && (
+				<IconButton
+					onClick={() => handleDeleteQueue(queue.id)}
+					sx={{ padding: 'unset' }}
+				>
+					<DeleteIcon />
+				</IconButton>
+			)}
 		</Stack>
 	);
 }
