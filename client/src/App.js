@@ -1,6 +1,5 @@
 import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
-import NavBar from './components/general/NavBar';
 import ProtectedRoute from './tools/ProtectedRoute';
 import Layout from './Layouts/Layout';
 import { LinearProgress } from '@mui/material';
@@ -12,7 +11,7 @@ const PersonalData = lazy(() => import('./screens/PersonalData'));
 const Services = lazy(() => import('./screens/Services'));
 const Queues = lazy(() => import('./screens/Queues'));
 const SignOut = lazy(() => import('./screens/SignOut'));
-const OrderQueue = lazy(() => import('./screens/OrderQueue'));
+const BookQueue = lazy(() => import('./screens/BookQueue'));
 
 function App() {
 	return (
@@ -50,11 +49,11 @@ function App() {
 						}
 					/>
 					<Route
-						path='/order-queue/:id'
+						path='/book-queue/:id'
 						element={
 							<Suspense fallback={<LinearProgress />}>
 								<Layout>
-									<OrderQueue />
+									<BookQueue />
 								</Layout>
 							</Suspense>
 						}

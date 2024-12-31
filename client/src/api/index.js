@@ -8,6 +8,7 @@ export const fetchGet = async (url) => {
 		return data;
 	} catch (error) {
 		console.error('API call failed:', error);
+		return error.response.data;
 	}
 };
 

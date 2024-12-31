@@ -8,7 +8,7 @@ import { UserContextProvider } from './context/userContext';
 import theme from './styles/CustomTheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { DialogContextProvider } from './context/DialogContext';
-
+import { ToastContainer } from 'react-toastify';
 const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -18,6 +18,7 @@ root.render(
 			<QueryClientProvider client={queryClient}>
 				<UserContextProvider>
 					<DialogContextProvider>
+						<ToastContainer />
 						<CssBaseline enableColorScheme />
 						<App />
 					</DialogContextProvider>

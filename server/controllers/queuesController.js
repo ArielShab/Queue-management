@@ -35,9 +35,9 @@ export const getProviderQueuesByID = async (req, res) => {
 		});
 
 		if (!workingTimes) {
-			return res.status(401).json({
+			return res.status(404).json({
 				success: false,
-				message: 'Not available at the specific date',
+				message: 'Not available queues at the specific date',
 			});
 		}
 

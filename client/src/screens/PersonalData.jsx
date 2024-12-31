@@ -17,6 +17,7 @@ import WorkingDayField from '../components/personalData/WorkingDayField';
 import WorkingDaySelect from '../components/SignUp/WorkingDaySelect';
 import { days } from '../tools/WeekDays';
 import { DialogContext } from '../context/DialogContext';
+import { alertMessage } from '../tools/AlertMessage';
 
 function PersonalData() {
 	const [workingDays, setWorkingDays] = useState([]);
@@ -51,8 +52,10 @@ function PersonalData() {
 		mutationFn: addUserWorkingDay,
 		onSuccess: ({ success, data: message }) => {
 			setNewWorkingDays([]);
-			queryClient.invalidateQueries(['workingDays'], { exact: true });
-			if (success) alert(message);
+			if (success) {
+				queryClient.invalidateQueries(['workingDays'], { exact: true });
+				alertMessage('success', message);
+			}
 		},
 		onError: (error) => {
 			console.error('error', error);
@@ -61,9 +64,11 @@ function PersonalData() {
 
 	const updateUserMutation = useMutation({
 		mutationFn: updateUserDataById,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['user'], { exact: true });
-			if (data?.status === 201) alert('Update success');
+		onSuccess: ({ success }) => {
+			if (success) {
+				queryClient.invalidateQueries(['user'], { exact: true });
+				alertMessage('success', 'Update success');
+			}
 		},
 		onError: (error) => {
 			console.error('error', error);
@@ -72,15 +77,21 @@ function PersonalData() {
 
 	const updateWorkingDaysMutation = useMutation({
 		mutationFn: updateUserWorkingDays,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['workingDays'], { exact: true });
+		onSuccess: ({ success }) => {
+			if (success) {
+				queryClient.invalidateQueries(['workingDays'], { exact: true });
+				alertMessage('success', 'Update success');
+			}
 		},
 	});
 
 	const deleteWorkingDayById = useMutation({
 		mutationFn: deleteUserWorkingDay,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['workingDays'], { exact: true });
+		onSuccess: ({ success }) => {
+			if (success) {
+				queryClient.invalidateQueries(['workingDays'], { exact: true });
+				alertMessage('success', 'Day was deleted');
+			}
 		},
 	});
 
@@ -119,15 +130,15 @@ function PersonalData() {
 
 	const handleAddWorkingDay = (index) => {
 		if (!newWorkingDays[index].day) {
-			alert('Please choose a day');
+			alertMessage('warn', 'Please choose a day');
 			return;
 		}
 		if (!newWorkingDays[index].opening) {
-			alert('Please choose a start of work');
+			alertMessage('warn', 'Please choose a start of work');
 			return;
 		}
 		if (!newWorkingDays[index].closing) {
-			alert('Please choose an end of work');
+			alertMessage('warn', 'Please choose an end of work');
 			return;
 		}
 		addWorkingDayMutation.mutate({

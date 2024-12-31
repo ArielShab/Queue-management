@@ -14,6 +14,7 @@ import { useMutation } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
 import WorkingDaySelect from '../components/SignUp/WorkingDaySelect';
 import { days } from '../tools/WeekDays';
+import { alertMessage } from '../tools/AlertMessage';
 
 function SignUp() {
 	const [fieldsValues, setFieldsValues] = useState({
@@ -30,13 +31,16 @@ function SignUp() {
 
 	const createUserMutation = useMutation({
 		mutationFn: createUser,
-		onSuccess: (data) => {
-			// Store the user's email in localStorage and a flag indicating they are at step 2
-			localStorage.setItem('step', 'verification');
-			localStorage.setItem('email', data.data); // Store the email
-			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-			localStorage.setItem('codeExpiration', expiresAt);
-			navigate('/sign-in');
+		onSuccess: ({ success, data: email }) => {
+			if (success) {
+				// Store the user's email in localStorage and a flag indicating they are at step 2
+				localStorage.setItem('step', 'verification');
+				localStorage.setItem('email', email); // Store the email
+				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+				localStorage.setItem('codeExpiration', expiresAt);
+				alertMessage('success', 'User was created');
+				navigate('/sign-in');
+			}
 		},
 		onError: (error) => {
 			console.error('Error creating user', error);

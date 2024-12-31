@@ -75,8 +75,6 @@ export const deleteUserService = async (req, res) => {
 			where: { serviceId: +id },
 		});
 
-		console.log('serviceQueues', serviceQueues);
-
 		if (serviceQueues.length) {
 			return res.status(401).json({
 				success: false,

@@ -14,6 +14,7 @@ import { Box } from '@mui/system';
 import AddServiceField from '../components/Services/AddServiceField';
 import ServiceField from '../components/Services/ServiceField';
 import { DialogContext } from '../context/DialogContext';
+import { alertMessage } from '../tools/AlertMessage';
 
 function Services() {
 	const { loggedUser } = useContext(UserContext);
@@ -30,29 +31,38 @@ function Services() {
 	} = useQuery({
 		queryKey: ['services', loggedUser?.id],
 		queryFn: getUserServices,
-		onError: (error, body, context) => {
+		onError: (error) => {
 			console.log(error);
 		},
 	});
 
 	const createServiceMutation = useMutation({
 		mutationFn: createUserService,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['services'], { exact: true });
+		onSuccess: ({ success }) => {
+			if (success) {
+				queryClient.invalidateQueries(['services'], { exact: true });
+				alertMessage('success', 'Service was created');
+			}
 		},
 	});
 
 	const updateServiceMutation = useMutation({
 		mutationFn: updateUserService,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['services'], { exact: true });
+		onSuccess: ({ success, data: message }) => {
+			if (success) {
+				queryClient.invalidateQueries(['services'], { exact: true });
+				alertMessage('success', message);
+			}
 		},
 	});
 
 	const deleteServiceMutation = useMutation({
 		mutationFn: deleteUserService,
-		onSuccess: (data) => {
-			queryClient.invalidateQueries(['services'], { exact: true });
+		onSuccess: ({ success, data: message }) => {
+			if (success) {
+				queryClient.invalidateQueries(['services'], { exact: true });
+				alertMessage('success', message);
+			}
 		},
 	});
 

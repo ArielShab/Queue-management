@@ -6,6 +6,7 @@ import { UserContext } from '../context/userContext';
 import { deleteBookedQueue, fetchUserBookedQueues } from '../api/queuesApi';
 import BookedQueue from '../components/queues/BookedQueue';
 import { DialogContext } from '../context/DialogContext';
+import { alertMessage } from '../tools/AlertMessage';
 
 function Queues() {
 	const [queuesToView, setQueuesToView] = useState(0);
@@ -24,10 +25,10 @@ function Queues() {
 
 	const deleteQueueMutation = useMutation({
 		mutationFn: deleteBookedQueue,
-		onSuccess: (data) => {
-			if (data?.id) {
+		onSuccess: ({ success }) => {
+			if (success) {
 				queryClient.invalidateQueries(['queues'], { exact: true });
-				alert('Queue was deleted');
+				alertMessage('success', 'Queue was deleted');
 			}
 		},
 		onError: (error) => {

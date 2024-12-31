@@ -8,6 +8,7 @@ import { UserContext } from '../context/userContext';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import MainTitle from '../components/general/MainTitle';
+import { alertMessage } from '../tools/AlertMessage';
 
 function SignIn() {
 	const [fieldsErrors, setFieldsErrors] = useState({});
@@ -21,20 +22,22 @@ function SignIn() {
 
 	const loginUserMutation = useMutation({
 		mutationFn: loginUser,
-		onSuccess: () => {
-			setStep(2);
-			// Store the user's email in localStorage and a flag indicating they are at step 2
-			localStorage.setItem('step', 'verification');
-			localStorage.setItem('email', email); // Store the email
-			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-			localStorage.setItem('codeExpiration', expiresAt);
-			// Start the countdown timer
-			const interval = setInterval(() => {
-				setTimer((prev) => {
-					if (prev <= 1) clearInterval(interval);
-					return prev - 1;
-				});
-			}, 1000);
+		onSuccess: ({ success }) => {
+			if (success) {
+				setStep(2);
+				// Store the user's email in localStorage and a flag indicating they are at step 2
+				localStorage.setItem('step', 'verification');
+				localStorage.setItem('email', email); // Store the email
+				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+				localStorage.setItem('codeExpiration', expiresAt);
+				// Start the countdown timer
+				const interval = setInterval(() => {
+					setTimer((prev) => {
+						if (prev <= 1) clearInterval(interval);
+						return prev - 1;
+					});
+				}, 1000);
+			}
 		},
 		onError: (error, body, context) => {
 			setError('Invalid email or password');
@@ -44,22 +47,22 @@ function SignIn() {
 
 	const verifyCodeMutation = useMutation({
 		mutationFn: verifyCode,
-		onSuccess: (data, body, context) => {
-			const token = data.data;
+		onSuccess: ({ success, data: token }) => {
+			if (success) {
+				localStorage.removeItem('step');
+				localStorage.removeItem('email');
+				localStorage.removeItem('codeExpiration');
+				localStorage.setItem('token', token);
 
-			localStorage.removeItem('step');
-			localStorage.removeItem('email');
-			localStorage.removeItem('codeExpiration');
-			localStorage.setItem('token', token);
+				setLoggedUser(jwtDecode(token));
 
-			setLoggedUser(jwtDecode(token));
+				alertMessage('success', 'login succesful');
 
-			alert('login succesful');
-
-			// Redirect to the logged-in area (dashboard, etc.)
-			navigate('/');
+				// Redirect to the pesonal data
+				navigate('/');
+			}
 		},
-		onError: (error, body, context) => {
+		onError: (error) => {
 			setError('Invalid or expired code');
 			console.error('Invalid or expired code', error);
 		},
@@ -67,21 +70,23 @@ function SignIn() {
 
 	const resendCodeMutation = useMutation({
 		mutationFn: loginUser,
-		onSuccess: (data, body, context) => {
-			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-			localStorage.setItem('codeExpiration', expiresAt);
-			setTimer(300);
-			setError('');
+		onSuccess: ({ success }) => {
+			if (success) {
+				const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+				localStorage.setItem('codeExpiration', expiresAt);
+				setTimer(300);
+				setError('');
 
-			// Start the countdown timer
-			const interval = setInterval(() => {
-				setTimer((prev) => {
-					if (prev <= 1) clearInterval(interval);
-					return prev - 1;
-				});
-			}, 1000);
+				// Start the countdown timer
+				const interval = setInterval(() => {
+					setTimer((prev) => {
+						if (prev <= 1) clearInterval(interval);
+						return prev - 1;
+					});
+				}, 1000);
+			}
 		},
-		onError: (error, body, context) => {
+		onError: (error) => {
 			setError('Invalid email or password');
 			console.error('Invalid email or password', error);
 		},

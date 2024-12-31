@@ -4,7 +4,6 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogContentText,
-	DialogTitle,
 } from '@mui/material';
 import React, { useContext } from 'react';
 import { DialogContext } from '../context/DialogContext';

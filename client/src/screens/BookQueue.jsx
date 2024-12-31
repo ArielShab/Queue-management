@@ -26,15 +26,16 @@ import timezone from 'dayjs/plugin/timezone';
 import { StyledLoader } from '../styles/LoaderStyle';
 import { getUserServices } from '../api/servicesApi';
 import { getUserPersonalData } from '../api/usersApi';
-import EmailPopup from '../components/orderQueue/EmailPopup';
+import EmailPopup from '../components/bookQueue/EmailPopup';
 import { days } from '../tools/WeekDays';
+import { alertMessage } from '../tools/AlertMessage';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function OrderQueue() {
+function BookQueue() {
 	const { id: providerId } = useParams();
-	const [selectedDate, setSelectedDate] = useState(null);
+	const [selectedDate, setSelectedDate] = useState(undefined);
 	const [selectedTime, setSelectedTime] = useState('');
 	const [formattingTime, setFormattingTime] = useState('');
 	const [selectedService, setSelectedService] = useState('');
@@ -55,7 +56,7 @@ function OrderQueue() {
 		queryFn: fetchUserQueuesTimes,
 		enabled: selectedDate !== null,
 		onError: (error) => {
-			console.log(error);
+			console.log("Couldn't get queues", error);
 		},
 	});
 
@@ -69,27 +70,29 @@ function OrderQueue() {
 
 	const {
 		data: services,
-		isLoading,
-		isError,
-		error,
+		isLoadingServices,
+		isErrorServices,
+		errorServices,
 	} = useQuery({
 		queryKey: ['services', providerId],
 		queryFn: getUserServices,
 		onError: (error) => {
-			console.log(error);
+			console.log("Couldn't get services", error);
 		},
 	});
 
 	const sendClientQueueMutation = useMutation({
 		mutationFn: sendClientQueueData,
-		onSuccess: (data) => {
-			setEmailVerificationStep(false);
-			const interval = setInterval(() => {
-				setTimer((prev) => {
-					if (prev <= 1) clearInterval(interval);
-					return prev - 1;
-				});
-			}, 1000);
+		onSuccess: ({ success }) => {
+			if (success) {
+				setEmailVerificationStep(false);
+				const interval = setInterval(() => {
+					setTimer((prev) => {
+						if (prev <= 1) clearInterval(interval);
+						return prev - 1;
+					});
+				}, 1000);
+			}
 		},
 		onError: (error) => {
 			console.error('error', error);
@@ -98,10 +101,14 @@ function OrderQueue() {
 
 	const sendVerificationCodeMutation = useMutation({
 		mutationFn: sendClientVerificationCode,
-		onSuccess: (data) => {
-			if (data.success) {
+		onSuccess: ({ success, data: message }) => {
+			if (success) {
+				setSelectedTime('');
+				setSelectedService('');
 				setOpenEmailVerification(false);
-				alert(data.data);
+				setEmailVerificationStep(true);
+				setTimer(300);
+				alertMessage('success', message);
 			}
 		},
 		onError: (error) => {
@@ -113,17 +120,17 @@ function OrderQueue() {
 		const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,6}$/;
 
 		if (!data.clientName) {
-			alert('Full name is required');
+			alertMessage('warn', 'Full name is required');
 			return;
 		} else if (data.clientName.length < 2) {
-			alert('Invalid full name');
+			alertMessage('warn', 'Invalid full name');
 			return;
 		}
 		if (!data.clientEmail) {
-			alert('Email is required');
+			alertMessage('warn', 'Email is required');
 			return;
 		} else if (!emailRegex.test(data.clientEmail)) {
-			alert('Invalid email');
+			alertMessage('warn', 'Invalid email');
 			return;
 		}
 
@@ -150,7 +157,7 @@ function OrderQueue() {
 			setSelectedDate(isoString);
 			setSelectedDayName(days[e.day()]);
 		} else {
-			alert('Please choose a valid date');
+			alertMessage('warn', 'Please choose a valid date');
 		}
 	};
 
@@ -166,8 +173,8 @@ function OrderQueue() {
 		}
 	}, [selectedTime]);
 
-	if (isLoading) return <StyledLoader />;
-	if (isError) return <p>{JSON.stringify(error)}</p>;
+	if (isLoadingServices) return <StyledLoader />;
+	if (isErrorServices) return <p>{JSON.stringify(errorServices)}</p>;
 
 	return (
 		<Container>
@@ -188,7 +195,7 @@ function OrderQueue() {
 			<LocalizationProvider dateAdapter={AdapterDayjs}>
 				<DateCalendar onChange={(e) => handleChangeDate(e)} />
 			</LocalizationProvider>
-			{allQueues?.data.length ? (
+			{allQueues?.data?.length ? (
 				<>
 					<Typography component='h3' variant='h3' marginBottom='16px'>
 						{`Date: ${dayjs(selectedDate).format('DD/MM/YYYY')}`}
@@ -262,8 +269,8 @@ function OrderQueue() {
 					</Box>
 				</>
 			) : (
-				<Typography variant='h1' component='h1'>
-					''
+				<Typography variant='h3' component='h3'>
+					{allQueues?.message}
 				</Typography>
 			)}
 			<EmailPopup
@@ -278,4 +285,4 @@ function OrderQueue() {
 	);
 }
 
-export default OrderQueue;
+export default BookQueue;
