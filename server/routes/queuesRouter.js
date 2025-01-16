@@ -1,26 +1,30 @@
-import express from 'express';
+import express from "express";
 import {
-	deleteQueueById,
-	getBookedQueues,
-	getProviderQueuesByID,
-	postClientQueueData,
-	verifyClientCode,
-} from '../controllers/queuesController.js';
+  deleteQueueById,
+  getBookedQueues,
+  getProviderQueuesByID,
+  postClientQueueData,
+  verifyClientQueueCode,
+  verifyClientLoginCode,
+} from "../controllers/queuesController.js";
 
 const router = express.Router();
 
 // Get all user's queues
-router.get('/', getProviderQueuesByID);
+router.get("/", getProviderQueuesByID);
 
 // Send client queue data
-router.post('/send-client-queue-data', postClientQueueData);
+router.post("/send-client-queue-data", postClientQueueData);
 
 // Verify client code
-router.post('/verify-client-code', verifyClientCode);
+router.post("/verify-client-queue-code", verifyClientQueueCode);
 
-router.get('/get-booked-queues', getBookedQueues);
+router.get("/get-booked-queues", getBookedQueues);
 
 // Delete queue by id
-router.delete('/delete-queue-by-id', deleteQueueById);
+router.delete("/delete-queue-by-id", deleteQueueById);
+
+// Verify client code
+router.post("/verify-client-login-code", verifyClientLoginCode);
 
 export default router;

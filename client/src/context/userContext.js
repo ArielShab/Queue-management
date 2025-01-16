@@ -1,18 +1,18 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState } from "react";
 
 export const UserContext = createContext({});
 
 export const UserContextProvider = ({ children }) => {
-	const [loggedUser, setLoggedUser] = useState(undefined);
+  const [loggedUser, setLoggedUser] = useState(undefined);
 
-	const UserContextData = {
-		loggedUser,
-		setLoggedUser,
-	};
+  const UserContextData = {
+    loggedUser,
+    setLoggedUser,
+  };
 
-	return (
-		<UserContext.Provider value={UserContextData}>
-			{children}
-		</UserContext.Provider>
-	);
+  return (
+    <UserContext.Provider value={UserContextData}>
+      {children}
+    </UserContext.Provider>
+  );
 };
