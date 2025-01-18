@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Container, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { StyledSignUpForm, StyledSubmitInput } from "../styles/SignUpStyles";
 import InputField from "../components/general/InputField";
-import { sendCodeToClientMail } from "../api/usersApi";
+import { sendClientLoginCode, sendCodeToClientMail } from "../api/usersApi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import MainTitle from "../components/general/MainTitle";
 import { alertMessage } from "../tools/AlertMessage";
-import { deleteBookedQueue, sendClientLoginCode } from "../api/queuesApi";
+import { deleteBookedQueue } from "../api/queuesApi";
 import BookedQueue from "../components/queues/BookedQueue";
 
 function MyQueues() {
@@ -16,7 +16,7 @@ function MyQueues() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [timer, setTimer] = useState(300); // 5-minute timer in seconds
-  const [queues, setQueues] = useState(null);
+  // const [queues, setQueues] = useState(null);
   const queryClient = useQueryClient();
   const [queuesToView, setQueuesToView] = useState(0);
 
@@ -26,10 +26,10 @@ function MyQueues() {
       if (response.success) {
         setStep(2);
         // Store the user's email in localStorage and a flag indicating they are at step 2
-        // localStorage.setItem('step', 'verification');
-        // localStorage.setItem('email', email); // Store the email
-        // const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-        // localStorage.setItem('codeExpiration', expiresAt);
+        localStorage.setItem("step", "verification");
+        localStorage.setItem("clientEmail", email); // Store the email
+        const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
+        localStorage.setItem("codeExpiration", expiresAt);
         // Start the countdown timer
         const interval = setInterval(() => {
           setTimer((prev) => {
@@ -47,14 +47,13 @@ function MyQueues() {
 
   const verifyCodeMutation = useMutation({
     mutationFn: sendClientLoginCode,
-    onSuccess: ({ success, data: queues }) => {
+    onSuccess: ({ success, data }) => {
       if (success) {
-        // localStorage.removeItem('step');
-        // localStorage.removeItem('email');
-        // localStorage.removeItem('codeExpiration');
-        // localStorage.setItem('token', token);
+        localStorage.removeItem("step");
+        localStorage.removeItem("clientEmail");
+        localStorage.removeItem("codeExpiration");
+        localStorage.setItem("token", data);
 
-        setQueues(queues);
         alertMessage("success", "Login successful");
       }
     },
@@ -63,8 +62,6 @@ function MyQueues() {
       console.error("Invalid or expired code", error);
     },
   });
-
-  console.log("queues", queues);
 
   const deleteQueueMutation = useMutation({
     mutationFn: deleteBookedQueue,
@@ -78,6 +75,15 @@ function MyQueues() {
       console.error("error", error);
     },
   });
+
+  // const { data: queues } = useQuery({
+  //   queryKey: ["queues", loggedUser.id],
+  //   queryFn: fetchUserBookedQueues,
+  //   enable: localStorage.getItem("token"),
+  //   onError: (error) => {
+  //     console.log("Could not get queues", error);
+  //   },
+  // });
 
   // const resendCodeMutation = useMutation({
   // 	mutationFn: loginUser,
@@ -144,47 +150,47 @@ function MyQueues() {
   // 	resendCodeMutation.mutate({ email });
   // };
 
-  // useEffect(() => {
-  // 	// Check if the user is supposed to be on the verification code page
-  // 	const step = localStorage.getItem('step');
-  // 	const expiration = localStorage.getItem('codeExpiration');
+  useEffect(() => {
+    // Check if the user is supposed to be on the verification code page
+    const step = localStorage.getItem("step");
+    const expiration = localStorage.getItem("codeExpiration");
 
-  // 	if (step !== 'verification' || !expiration) {
-  // 		// If not, redirect to step 1 (login page)
-  // 		return;
-  // 	}
+    if (step !== "verification" || !expiration) {
+      // If not, redirect to step 1 (login page)
+      return;
+    }
 
-  // 	const currentTime = Date.now();
+    const currentTime = Date.now();
 
-  // 	if (currentTime > parseInt(expiration)) {
-  // 		// Code has expired, redirect back to step 1
-  // 		localStorage.removeItem('step');
-  // 		localStorage.removeItem('email');
-  // 		localStorage.removeItem('codeExpiration');
-  // 		return;
-  // 	} else {
-  // 		setStep(2);
-  // 		setEmail(localStorage.getItem('email'));
-  // 	}
+    if (currentTime > parseInt(expiration)) {
+      // Code has expired, redirect back to step 1
+      localStorage.removeItem("step");
+      localStorage.removeItem("clientEmail");
+      localStorage.removeItem("codeExpiration");
+      return;
+    } else {
+      setStep(2);
+      setEmail(localStorage.getItem("clientEmail"));
+    }
 
-  // 	const remainingTime = Math.floor((expiration - currentTime) / 1000);
-  // 	setTimer(remainingTime);
+    const remainingTime = Math.floor((expiration - currentTime) / 1000);
+    setTimer(remainingTime);
 
-  // 	const interval = setInterval(() => {
-  // 		setTimer((prev) => {
-  // 			if (prev <= 1) {
-  // 				clearInterval(interval);
-  // 				return 0;
-  // 			}
-  // 			return prev - 1;
-  // 		});
-  // 	}, 1000);
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-  // 	// Cleanup interval when component unmounts or re-renders
-  // 	return () => {
-  // 		clearInterval(interval);
-  // 	};
-  // }, []);
+    // Cleanup interval when component unmounts or re-renders
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   const renderSubmitionForm = () => {
     return step === 1 ? (
@@ -259,45 +265,45 @@ function MyQueues() {
           </Tabs>
         </Box>
         <Stack marginTop="24px" rowGap="16px">
-          {queuesToView === 0 ? renderFutureQueues() : renderPastQueues()}
+          {/* {queuesToView === 0 ? renderFutureQueues() : renderPastQueues()} */}
         </Stack>
       </>
     );
   };
 
-  const renderFutureQueues = () => {
-    if (queues.futureQueues.length) {
-      return queues.futureQueues.map((queue, index) => {
-        return (
-          <BookedQueue
-            key={queue.id}
-            queue={queue}
-            index={index}
-            handleDeleteQueue={handleDeleteQueue}
-          />
-        );
-      });
-    } else return <Typography variant="h3">No future queues</Typography>;
-  };
-  const renderPastQueues = () => {
-    if (queues.pastQueues.length) {
-      return queues.pastQueues.map((queue, index) => {
-        return (
-          <BookedQueue
-            key={queue.id}
-            queue={queue}
-            index={index}
-            handleDeleteQueue={handleDeleteQueue}
-          />
-        );
-      });
-    } else return <Typography variant="h3">No past queues</Typography>;
-  };
+  // const renderFutureQueues = () => {
+  //   if (queues.futureQueues.length) {
+  //     return queues.futureQueues.map((queue, index) => {
+  //       return (
+  //         <BookedQueue
+  //           key={queue.id}
+  //           queue={queue}
+  //           index={index}
+  //           handleDeleteQueue={handleDeleteQueue}
+  //         />
+  //       );
+  //     });
+  //   } else return <Typography variant="h3">No future queues</Typography>;
+  // };
+  // const renderPastQueues = () => {
+  //   if (queues.pastQueues.length) {
+  //     return queues.pastQueues.map((queue, index) => {
+  //       return (
+  //         <BookedQueue
+  //           key={queue.id}
+  //           queue={queue}
+  //           index={index}
+  //           handleDeleteQueue={handleDeleteQueue}
+  //         />
+  //       );
+  //     });
+  //   } else return <Typography variant="h3">No past queues</Typography>;
+  // };
 
   return (
     <Container>
       <MainTitle title="My Queues" />
-      {queues ? renderQueues() : renderSubmitionForm()}
+      {/* {queues ? renderQueues() : renderSubmitionForm()} */}
     </Container>
   );
 }

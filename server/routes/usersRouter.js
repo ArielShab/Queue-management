@@ -10,6 +10,7 @@ import {
   deleteUserWorkingDay,
   addUserDayOfWork,
   sendCodeToClient,
+  verifyClientLoginCode,
 } from "../controllers/usersController.js";
 
 const router = express.Router();
@@ -43,5 +44,8 @@ router.post("/add-user-working-day", addUserDayOfWork);
 
 // Send verification code to client email
 router.post("/send-code-to-client-mail", sendCodeToClient);
+
+// Verify client code
+router.post("/verify-client-login-code", verifyClientLoginCode);
 
 export default router;

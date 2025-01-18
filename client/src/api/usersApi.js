@@ -45,3 +45,7 @@ export const addUserWorkingDay = async (body) => {
 export const sendCodeToClientMail = async (body) => {
   return await fetchPost(`${BASE_URL}/users/send-code-to-client-mail`, body);
 };
+
+export const sendClientLoginCode = async (body) => {
+  return await fetchPost(`${BASE_URL}/users/verify-client-login-code`, body);
+};

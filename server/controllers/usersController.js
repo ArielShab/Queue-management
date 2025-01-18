@@ -431,3 +431,50 @@ export const sendCodeToClient = async (req, res) => {
     });
   }
 };
+
+export const verifyClientLoginCode = async (req, res) => {
+  const { clientEmail, verificationCode } = req.body;
+
+  try {
+    // Fetch client
+    const client = await prisma.client.findUnique({
+      where: { clientEmail },
+    });
+
+    if (!client) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or code" });
+    }
+
+    const isCodeValid = await bcrypt.compare(
+      verificationCode,
+      client.verificationCode
+    );
+
+    if (!isCodeValid) {
+      return res.status(401).json({ success: false, message: "Invalid code" });
+    }
+
+    // Check if the code is expired
+    if (new Date() > client.codeExpiration) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Code has expired" });
+    }
+
+    const token = jwt.sign(
+      { id: client.id, email: clientEmail },
+      process.env.JWT_SECRET,
+      { expiresIn: "12h" }
+    );
+
+    return res.status(200).json({ success: true, data: token });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

@@ -23,8 +23,6 @@ function Queues() {
     },
   });
 
-  console.log("queues", queues);
-
   const deleteQueueMutation = useMutation({
     mutationFn: deleteBookedQueue,
     onSuccess: ({ success }) => {
@@ -53,7 +51,7 @@ function Queues() {
       return queues?.data.futureQueues.map((queue, index) => {
         return (
           <BookedQueue
-            key={queue.id}
+            key={queue.queueTime}
             queue={queue}
             index={index}
             handleDeleteQueue={handleDeleteQueue}
@@ -65,7 +63,9 @@ function Queues() {
   const renderPastQueues = () => {
     if (queues?.data.pastQueues.length) {
       return queues?.data.pastQueues.map((queue, index) => {
-        return <BookedQueue key={queue.id} queue={queue} index={index} />;
+        return (
+          <BookedQueue key={queue.queueTime} queue={queue} index={index} />
+        );
       });
     } else return <Typography variant="h3">No past queues</Typography>;
   };

@@ -5,7 +5,6 @@ import {
   getProviderQueuesByID,
   postClientQueueData,
   verifyClientQueueCode,
-  verifyClientLoginCode,
 } from "../controllers/queuesController.js";
 
 const router = express.Router();
@@ -23,8 +22,5 @@ router.get("/get-booked-queues", getBookedQueues);
 
 // Delete queue by id
 router.delete("/delete-queue-by-id", deleteQueueById);
-
-// Verify client code
-router.post("/verify-client-login-code", verifyClientLoginCode);
 
 export default router;

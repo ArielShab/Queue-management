@@ -13,6 +13,7 @@ function BookedQueue({ queue, index, handleDeleteQueue }) {
           "HH:mm"
         )}`}</Typography>
         <Typography>{`${queue.clientName} - ${queue.clientEmail}`}</Typography>
+        <Typography>{queue.serviceName}</Typography>
       </Box>
       {handleDeleteQueue && (
         <IconButton

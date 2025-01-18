@@ -23,7 +23,3 @@ export const fetchUserBookedQueues = async ({ queryKey }) => {
 export const deleteBookedQueue = async (id) => {
   return await fetchDelete(`${BASE_URL}/queues/delete-queue-by-id?id=${id}`);
 };
-
-export const sendClientLoginCode = async (body) => {
-  return await fetchPost(`${BASE_URL}/queues/verify-client-login-code`, body);
-};

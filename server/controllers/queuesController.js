@@ -314,10 +314,6 @@ export const getBookedQueues = async (req, res) => {
       where: {
         AND: [{ userId: +id }, { queueApproved: true }],
       },
-      select: {
-        id: true,
-        clientId: true,
-      },
     });
 
     if (!queues) {
@@ -327,13 +323,47 @@ export const getBookedQueues = async (req, res) => {
       });
     }
 
-    const pastQueues = [];
-    const futureQueues = [];
+    const queueDetails = await Promise.all(
+      queues.map(async (queue) => {
+        // get queue client data
+        const client = await prisma.client.findUnique({
+          where: { id: queue.clientId },
+        });
 
-    queues.forEach((queue) => {
-      if (dayjs(queue.queueTime).isAfter(dayjs())) futureQueues.push(queue);
-      else pastQueues.push(queue);
-    });
+        if (!client) {
+          return res.status(401).json({
+            success: false,
+            message: "Could not get client data",
+          });
+        }
+
+        // get queue service name
+        const service = await prisma.service.findUnique({
+          where: { id: queue.serviceId },
+        });
+
+        if (!service) {
+          return res.status(401).json({
+            success: false,
+            message: "Could not get service data",
+          });
+        }
+
+        return {
+          queueTime: queue.queueTime,
+          clientName: client.clientName,
+          clientEmail: client.clientEmail,
+          serviceName: service.serviceName,
+        };
+      })
+    );
+
+    const pastQueues = queueDetails.filter((queue) =>
+      dayjs(queue.queueTime).isBefore(dayjs())
+    );
+    const futureQueues = queueDetails.filter((queue) =>
+      dayjs(queue.queueTime).isAfter(dayjs())
+    );
 
     return res
       .status(200)
@@ -367,49 +397,76 @@ export const deleteQueueById = async (req, res) => {
   }
 };
 
-export const verifyClientLoginCode = async (req, res) => {
-  const { clientEmail, verificationCode } = req.body;
+// const clientQueues = await prisma.queue.findMany({
+//   where: { AND: [{ clientId: client.id }, { queueApproved: true }] },
+// });
+
+// const pastQueues = [];
+// const futureQueues = [];
+
+// clientQueues.forEach((queue) => {
+//   if (dayjs(queue.queueTime).isAfter(dayjs())) futureQueues.push(queue);
+//   else pastQueues.push(queue);
+// });
+
+export const getClientBookedQueues = async (req, res) => {
+  const { id } = req.query;
 
   try {
-    // Fetch client
-    const client = await prisma.client.findUnique({
-      where: { clientEmail },
+    const queues = await prisma.queue.findMany({
+      where: {
+        AND: [{ userId: +id }, { queueApproved: true }],
+      },
     });
 
-    if (!client) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email or code" });
+    if (!queues) {
+      return res.status(401).json({
+        success: false,
+        message: "Could not get booked queues",
+      });
     }
 
-    const isCodeValid = await bcrypt.compare(
-      verificationCode,
-      client.verificationCode
+    const queueDetails = await Promise.all(
+      queues.map(async (queue) => {
+        // get queue client data
+        const client = await prisma.client.findUnique({
+          where: { id: queue.clientId },
+        });
+
+        if (!client) {
+          return res.status(401).json({
+            success: false,
+            message: "Could not get client data",
+          });
+        }
+
+        // get queue service name
+        const service = await prisma.service.findUnique({
+          where: { id: queue.serviceId },
+        });
+
+        if (!service) {
+          return res.status(401).json({
+            success: false,
+            message: "Could not get service data",
+          });
+        }
+
+        return {
+          queueTime: queue.queueTime,
+          clientName: client.clientName,
+          clientEmail: client.clientEmail,
+          serviceName: service.serviceName,
+        };
+      })
     );
 
-    if (!isCodeValid) {
-      return res.status(401).json({ success: false, message: "Invalid code" });
-    }
-
-    // Check if the code is expired
-    if (new Date() > client.codeExpiration) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Code has expired" });
-    }
-
-    // Fetch client queues
-    const clientQueues = await prisma.queue.findMany({
-      where: { AND: [{ clientId: client.id }, { queueApproved: true }] },
-    });
-
-    const pastQueues = [];
-    const futureQueues = [];
-
-    clientQueues.forEach((queue) => {
-      if (dayjs(queue.queueTime).isAfter(dayjs())) futureQueues.push(queue);
-      else pastQueues.push(queue);
-    });
+    const pastQueues = queueDetails.filter((queue) =>
+      dayjs(queue.queueTime).isBefore(dayjs())
+    );
+    const futureQueues = queueDetails.filter((queue) =>
+      dayjs(queue.queueTime).isAfter(dayjs())
+    );
 
     return res
       .status(200)
