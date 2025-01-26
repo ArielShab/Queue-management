@@ -154,11 +154,7 @@ function BookQueue() {
 
   const handleChangeDate = (e) => {
     if (!dayjs(e.$d).isBefore(dayjs())) {
-      // const localDate = dayjs(e.$d).startOf('day'); // Ensures time is midnight local
-      // const isoString = localDate.format('YYYY-MM-DDTHH:mm:ss.SSSZ'); // Custom ISO format with local timezone
-      // setSelectedDate(isoString);
       setSelectedDate(e);
-      // setSelectedDayName(days[e.day()]);
     } else {
       alertMessage("warn", "Please choose a valid date");
     }

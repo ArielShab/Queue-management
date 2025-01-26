@@ -2,34 +2,33 @@ import { jwtDecode } from "jwt-decode";
 import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const UserContext = createContext({});
+export const ClientContext = createContext({});
 
-export const UserContextProvider = ({ children }) => {
-  const [loggedUser, setLoggedUser] = useState(undefined);
+export const ClientContextProvider = ({ children }) => {
+  const [loggedClient, setLoggedClient] = useState(undefined);
   const navigate = useNavigate();
 
-  const UserContextData = {
-    loggedUser,
-    setLoggedUser,
+  const ClientContextData = {
+    loggedClient,
+    setLoggedClient,
   };
 
   // useEffect(() => {
   //   // Check if user if logged in
-  //   const token = localStorage.getItem("token");
+  //   const token = localStorage.getItem("clientToken");
 
   //   if (token) {
   //     const decodedToken = jwtDecode(token);
 
   //     if (decodedToken.id) {
-  //       setLoggedUser(decodedToken);
-  //       navigate("/");
+  //       setLoggedClient(decodedToken);
   //     }
   //   }
   // }, []);
 
   return (
-    <UserContext.Provider value={UserContextData}>
+    <ClientContext.Provider value={ClientContextData}>
       {children}
-    </UserContext.Provider>
+    </ClientContext.Provider>
   );
 };

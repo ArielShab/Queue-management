@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import React from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function BookedQueue({ queue, index, handleDeleteQueue }) {
+function BookedQueue({ queue, index, handleDeleteQueue, client = false }) {
   return (
     <Stack direction="row" alignItems="flex-start">
       <Box flexGrow="1">
@@ -12,7 +12,11 @@ function BookedQueue({ queue, index, handleDeleteQueue }) {
         ).format("DD/MM/YYYY")} - ${dayjs(queue.queueTime).format(
           "HH:mm"
         )}`}</Typography>
-        <Typography>{`${queue.clientName} - ${queue.clientEmail}`}</Typography>
+        <Typography>
+          {client
+            ? `${queue.userName} - ${queue.userEmail}`
+            : `${queue.clientName} - ${queue.clientEmail}`}
+        </Typography>
         <Typography>{queue.serviceName}</Typography>
       </Box>
       {handleDeleteQueue && (

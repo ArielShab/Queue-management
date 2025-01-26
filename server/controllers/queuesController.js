@@ -415,7 +415,7 @@ export const getClientBookedQueues = async (req, res) => {
   try {
     const queues = await prisma.queue.findMany({
       where: {
-        AND: [{ userId: +id }, { queueApproved: true }],
+        AND: [{ clientId: +id }, { queueApproved: true }],
       },
     });
 
@@ -428,15 +428,15 @@ export const getClientBookedQueues = async (req, res) => {
 
     const queueDetails = await Promise.all(
       queues.map(async (queue) => {
-        // get queue client data
-        const client = await prisma.client.findUnique({
-          where: { id: queue.clientId },
+        // get queue user data
+        const user = await prisma.user.findUnique({
+          where: { id: queue.userId },
         });
 
-        if (!client) {
+        if (!user) {
           return res.status(401).json({
             success: false,
-            message: "Could not get client data",
+            message: "Could not get user data",
           });
         }
 
@@ -453,9 +453,10 @@ export const getClientBookedQueues = async (req, res) => {
         }
 
         return {
+          id: queue.id,
           queueTime: queue.queueTime,
-          clientName: client.clientName,
-          clientEmail: client.clientEmail,
+          userName: `${user.firstName} ${user.lastName}`,
+          userEmail: user.email,
           serviceName: service.serviceName,
         };
       })

@@ -15,6 +15,7 @@ import MainTitle from "../components/general/MainTitle";
 import WorkingDaySelect from "../components/SignUp/WorkingDaySelect";
 import { days } from "../tools/WeekDays";
 import { alertMessage } from "../tools/AlertMessage";
+import { ClientContext } from "../context/clientContext";
 
 function SignUp() {
   const [fieldsValues, setFieldsValues] = useState({
@@ -26,6 +27,7 @@ function SignUp() {
   });
   const [fieldsErrors, setFieldsErrors] = useState({});
   const [workingDays, setWorkingDays] = useState([]);
+  const { setLoggedClient } = useContext(ClientContext);
   const { setLoggedUser } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -121,14 +123,20 @@ function SignUp() {
   };
 
   useEffect(() => {
-    // Check if user if logged in
-    const token = localStorage.getItem("token");
+    // Check if user or client logged in
+    const userToken = localStorage.getItem("token");
+    const clientToken = localStorage.getItem("clientToken");
 
-    if (token) {
-      const decodedToken = jwtDecode(token);
+    if (userToken) {
+      const decodedToken = jwtDecode(userToken);
       setLoggedUser(decodedToken);
 
       if (decodedToken.id) navigate("/");
+    } else if (clientToken) {
+      const decodedToken = jwtDecode(clientToken);
+      setLoggedClient(decodedToken);
+
+      if (decodedToken.id) navigate("/my-queues");
     }
   }, []);
 

@@ -9,15 +9,16 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import MainTitle from "../components/general/MainTitle";
 import { alertMessage } from "../tools/AlertMessage";
+import { ClientContext } from "../context/clientContext";
 
 function SignIn() {
   const [fieldsErrors, setFieldsErrors] = useState({});
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [step, setStep] = useState(1);
-  const [error, setError] = useState("");
   const [timer, setTimer] = useState(300); // 5-minute timer in seconds
   const { setLoggedUser } = useContext(UserContext);
+  const { setLoggedClient } = useContext(ClientContext);
   const navigate = useNavigate();
 
   const loginUserMutation = useMutation({
@@ -40,30 +41,30 @@ function SignIn() {
       } else alertMessage("error", response.message);
     },
     onError: (error, body, context) => {
-      setError("Invalid email or password");
       console.error("Invalid email or password", error);
     },
   });
 
   const verifyCodeMutation = useMutation({
     mutationFn: verifyCode,
-    onSuccess: ({ success, data: token }) => {
-      if (success) {
+    onSuccess: (data) => {
+      if (data.success) {
         localStorage.removeItem("step");
         localStorage.removeItem("email");
         localStorage.removeItem("codeExpiration");
-        localStorage.setItem("token", token);
+        localStorage.setItem("token", data.data);
 
-        setLoggedUser(jwtDecode(token));
+        setLoggedUser(jwtDecode(data.data));
 
         alertMessage("success", "login succesful");
 
         // Redirect to the pesonal data
         navigate("/");
+      } else {
+        setFieldsErrors({ "verification-code": data.message });
       }
     },
     onError: (error) => {
-      setError("Invalid or expired code");
       console.error("Invalid or expired code", error);
     },
   });
@@ -75,7 +76,6 @@ function SignIn() {
         const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
         localStorage.setItem("codeExpiration", expiresAt);
         setTimer(300);
-        setError("");
 
         // Start the countdown timer
         const interval = setInterval(() => {
@@ -87,7 +87,6 @@ function SignIn() {
       }
     },
     onError: (error) => {
-      setError("Invalid email or password");
       console.error("Invalid email or password", error);
     },
   });
@@ -126,15 +125,20 @@ function SignIn() {
   };
 
   useEffect(() => {
-    // Check if user if logged in
-    const token = localStorage.getItem("token");
+    // Check if user or client logged in
+    const userToken = localStorage.getItem("token");
+    const clientToken = localStorage.getItem("clientToken");
 
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      if (decodedToken.id) {
-        setLoggedUser(decodedToken);
-        navigate("/");
-      }
+    if (userToken) {
+      const decodedToken = jwtDecode(userToken);
+      setLoggedUser(decodedToken);
+
+      if (decodedToken.id) navigate("/");
+    } else if (clientToken) {
+      const decodedToken = jwtDecode(clientToken);
+      setLoggedClient(decodedToken);
+
+      if (decodedToken.id) navigate("/my-queues");
     }
 
     // Check if the user is supposed to be on the verification code page
@@ -228,7 +232,6 @@ function SignIn() {
                 <button onClick={resendCode}>Resend Code</button>
               </>
             )}
-            {error && <p>{error}</p>}
           </StyledSignUpForm>
         </>
       )}

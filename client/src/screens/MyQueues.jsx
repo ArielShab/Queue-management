@@ -1,24 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Box, Container, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { StyledSignUpForm, StyledSubmitInput } from "../styles/SignUpStyles";
 import InputField from "../components/general/InputField";
 import { sendClientLoginCode, sendCodeToClientMail } from "../api/usersApi";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MainTitle from "../components/general/MainTitle";
 import { alertMessage } from "../tools/AlertMessage";
-import { deleteBookedQueue } from "../api/queuesApi";
+import { deleteBookedQueue, fetchClientBookedQueues } from "../api/queuesApi";
 import BookedQueue from "../components/queues/BookedQueue";
+import { jwtDecode } from "jwt-decode";
+import { ClientContext } from "../context/clientContext";
+import { UserContext } from "../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 function MyQueues() {
   const [fieldsErrors, setFieldsErrors] = useState({});
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [step, setStep] = useState(1);
-  const [error, setError] = useState("");
   const [timer, setTimer] = useState(300); // 5-minute timer in seconds
-  // const [queues, setQueues] = useState(null);
   const queryClient = useQueryClient();
   const [queuesToView, setQueuesToView] = useState(0);
+  const { loggedClient, setLoggedClient } = useContext(ClientContext);
+  const { setLoggedUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
   const sendCodeToClientMailMutation = useMutation({
     mutationFn: sendCodeToClientMail,
@@ -40,26 +45,38 @@ function MyQueues() {
       } else alertMessage("error", response.message);
     },
     onError: (error, body, context) => {
-      setError("Invalid email");
       console.error("Invalid email", error);
     },
   });
 
   const verifyCodeMutation = useMutation({
     mutationFn: sendClientLoginCode,
-    onSuccess: ({ success, data }) => {
-      if (success) {
+    onSuccess: (data) => {
+      console.log("data", data);
+      if (data.success) {
         localStorage.removeItem("step");
         localStorage.removeItem("clientEmail");
         localStorage.removeItem("codeExpiration");
-        localStorage.setItem("token", data);
+        localStorage.setItem("clientToken", data.data);
+
+        setLoggedClient(jwtDecode(data.data));
 
         alertMessage("success", "Login successful");
+      } else {
+        setFieldsErrors({ "verification-code": data.message });
       }
     },
     onError: (error) => {
-      setError("Invalid or expired code");
       console.error("Invalid or expired code", error);
+    },
+  });
+
+  const { data: queues } = useQuery({
+    queryKey: ["queues", loggedClient?.id],
+    queryFn: fetchClientBookedQueues,
+    enabled: !!loggedClient,
+    onError: (error) => {
+      console.error("Could not get queues", error);
     },
   });
 
@@ -75,39 +92,6 @@ function MyQueues() {
       console.error("error", error);
     },
   });
-
-  // const { data: queues } = useQuery({
-  //   queryKey: ["queues", loggedUser.id],
-  //   queryFn: fetchUserBookedQueues,
-  //   enable: localStorage.getItem("token"),
-  //   onError: (error) => {
-  //     console.log("Could not get queues", error);
-  //   },
-  // });
-
-  // const resendCodeMutation = useMutation({
-  // 	mutationFn: loginUser,
-  // 	onSuccess: ({ success }) => {
-  // 		if (success) {
-  // 			const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-  // 			localStorage.setItem('codeExpiration', expiresAt);
-  // 			setTimer(300);
-  // 			setError('');
-
-  // 			// Start the countdown timer
-  // 			const interval = setInterval(() => {
-  // 				setTimer((prev) => {
-  // 					if (prev <= 1) clearInterval(interval);
-  // 					return prev - 1;
-  // 				});
-  // 			}, 1000);
-  // 		}
-  // 	},
-  // 	onError: (error) => {
-  // 		setError('Invalid email or password');
-  // 		console.error('Invalid email or password', error);
-  // 	},
-  // });
 
   const handleFieldChange = (id, value) => {
     if (id === "email") setEmail(value);
@@ -151,7 +135,17 @@ function MyQueues() {
   // };
 
   useEffect(() => {
-    // Check if the user is supposed to be on the verification code page
+    // Check if user logged in
+    const userToken = localStorage.getItem("token");
+
+    if (userToken) {
+      const decodedToken = jwtDecode(userToken);
+      setLoggedUser(decodedToken);
+
+      if (decodedToken.id) navigate("/");
+    }
+
+    // Check if the client is supposed to be on the verification code page
     const step = localStorage.getItem("step");
     const expiration = localStorage.getItem("codeExpiration");
 
@@ -212,7 +206,7 @@ function MyQueues() {
       </>
     ) : (
       <>
-        <Typography component="h1" variant="h1" marginBlock="20px">
+        <Typography component="h3" variant="h3" marginBlock="30px">
           Set verification code
         </Typography>
         <StyledSignUpForm onSubmit={handleVerifyCode}>
@@ -229,23 +223,14 @@ function MyQueues() {
             <StyledSubmitInput type="submit" value="Verify" />
           </Stack>
 
-          {
-            timer > 0 && (
-              <Typography>
-                Time remaining: {Math.floor(timer / 60)}:
-                {(timer % 60).toString().padStart(2, "0")}
-              </Typography>
-            )
-            // : (
-            // 	<>
-            // 		<Typography>Code expired</Typography>
-            // 		<button onClick={resendCode}>
-            // 			Resend Code
-            // 		</button>
-            // 	</>
-            // )
-          }
-          {error && <p>{error}</p>}
+          {timer > 0 ? (
+            <Typography>
+              Time remaining: {Math.floor(timer / 60)}:
+              {(timer % 60).toString().padStart(2, "0")}
+            </Typography>
+          ) : (
+            <Typography>Code expired</Typography>
+          )}
         </StyledSignUpForm>
       </>
     );
@@ -265,45 +250,46 @@ function MyQueues() {
           </Tabs>
         </Box>
         <Stack marginTop="24px" rowGap="16px">
-          {/* {queuesToView === 0 ? renderFutureQueues() : renderPastQueues()} */}
+          {queuesToView === 0 ? renderFutureQueues() : renderPastQueues()}
         </Stack>
       </>
     );
   };
 
-  // const renderFutureQueues = () => {
-  //   if (queues.futureQueues.length) {
-  //     return queues.futureQueues.map((queue, index) => {
-  //       return (
-  //         <BookedQueue
-  //           key={queue.id}
-  //           queue={queue}
-  //           index={index}
-  //           handleDeleteQueue={handleDeleteQueue}
-  //         />
-  //       );
-  //     });
-  //   } else return <Typography variant="h3">No future queues</Typography>;
-  // };
-  // const renderPastQueues = () => {
-  //   if (queues.pastQueues.length) {
-  //     return queues.pastQueues.map((queue, index) => {
-  //       return (
-  //         <BookedQueue
-  //           key={queue.id}
-  //           queue={queue}
-  //           index={index}
-  //           handleDeleteQueue={handleDeleteQueue}
-  //         />
-  //       );
-  //     });
-  //   } else return <Typography variant="h3">No past queues</Typography>;
-  // };
+  const renderFutureQueues = () => {
+    if (queues?.data.futureQueues.length) {
+      return queues?.data.futureQueues.map((queue, index) => {
+        return (
+          <BookedQueue
+            key={queue.id}
+            queue={queue}
+            index={index}
+            handleDeleteQueue={handleDeleteQueue}
+            client={true}
+          />
+        );
+      });
+    } else return <Typography variant="h3">No future queues</Typography>;
+  };
+  const renderPastQueues = () => {
+    if (queues?.data.pastQueues.length) {
+      return queues?.data.pastQueues.map((queue, index) => {
+        return (
+          <BookedQueue
+            key={queue.id}
+            queue={queue}
+            index={index}
+            client={true}
+          />
+        );
+      });
+    } else return <Typography variant="h3">No past queues</Typography>;
+  };
 
   return (
     <Container>
       <MainTitle title="My Queues" />
-      {/* {queues ? renderQueues() : renderSubmitionForm()} */}
+      {queues ? renderQueues() : renderSubmitionForm()}
     </Container>
   );
 }
