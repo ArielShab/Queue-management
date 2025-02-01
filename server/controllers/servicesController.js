@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 export const getUserServicesById = async (req, res) => {
   const { id } = req.query;
 
+  // get services of user by user id
   try {
     const services = await prisma.service.findMany({
       where: { userId: +id },
@@ -24,6 +25,7 @@ export const getUserServicesById = async (req, res) => {
 };
 
 export const createUserServicesById = async (req, res) => {
+  // create new servie to user by user id
   try {
     const service = await prisma.service.create({
       data: req.body,
@@ -43,7 +45,9 @@ export const createUserServicesById = async (req, res) => {
 
 export const updateUserService = async (req, res) => {
   const { id, serviceName } = req.body;
+
   try {
+    // update user service by user id and service name
     const service = await prisma.service.update({
       where: { id },
       data: {
@@ -67,6 +71,7 @@ export const updateUserService = async (req, res) => {
 export const deleteUserService = async (req, res) => {
   const { id } = req.query;
 
+  // find queues of specific service
   try {
     const serviceQueues = await prisma.queue.findMany({
       where: { serviceId: +id },
@@ -79,6 +84,7 @@ export const deleteUserService = async (req, res) => {
       });
     }
 
+    // if there are no queues of the service delete service by id
     const response = await prisma.service.delete({
       where: {
         id: +id,

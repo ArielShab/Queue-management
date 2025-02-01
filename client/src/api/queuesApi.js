@@ -21,7 +21,6 @@ export const fetchUserBookedQueues = async ({ queryKey }) => {
 };
 
 export const deleteBookedQueue = async (id) => {
-  console.log("id", id);
   return await fetchDelete(`${BASE_URL}/queues/delete-queue-by-id?id=${id}`);
 };
 

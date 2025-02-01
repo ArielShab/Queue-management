@@ -27,6 +27,7 @@ function PersonalData() {
     useContext(DialogContext);
   const queryClient = useQueryClient();
 
+  // fetch user personal data by user id
   const {
     data: user,
     isLoading,
@@ -36,15 +37,16 @@ function PersonalData() {
     queryKey: ["user", loggedUser?.id],
     queryFn: getUserPersonalData,
     onError: (error) => {
-      console.log("Couldn't get user data", error);
+      console.error("Couldn't get user data", error);
     },
   });
 
+  // fetch user working days
   const { data: userWorkingDays } = useQuery({
     queryKey: ["workingDays", loggedUser?.id],
     queryFn: getUserWorkingDays,
     onError: (error) => {
-      console.log("Couldn't get user working days", error);
+      console.error("Couldn't get user working days", error);
     },
   });
 

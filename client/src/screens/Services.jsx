@@ -23,6 +23,7 @@ function Services() {
   const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
     useContext(DialogContext);
 
+  // fetch user services by user id
   const {
     data: services,
     isLoading,
@@ -32,7 +33,7 @@ function Services() {
     queryKey: ["services", loggedUser?.id],
     queryFn: getUserServices,
     onError: (error) => {
-      console.log(error);
+      console.error("error", error);
     },
   });
 
@@ -74,7 +75,6 @@ function Services() {
     handleOpenDialog(true);
     handleDialogText("Are you sure you want to delete this service ?");
     handleSetDialogFunction(() => deleteServiceMutation.mutate(serviceId));
-    // deleteServiceMutation.mutate(serviceId);
   };
 
   if (isLoading) return <StyledLoader />;

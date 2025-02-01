@@ -13,7 +13,6 @@ export const verifyCode = async (body) => {
 };
 
 export const getUserPersonalData = async ({ queryKey }) => {
-  console.log("queryKey", queryKey[1]);
   return await fetchGet(
     `${BASE_URL}/users/get-user-personal-data?id=${+queryKey[1]}`
   );

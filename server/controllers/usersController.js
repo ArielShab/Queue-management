@@ -6,6 +6,7 @@ import sgMail from "@sendgrid/mail";
 const prisma = new PrismaClient();
 const saltRounds = 10;
 
+// set sendgrid api key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Generate random 6-digit code
@@ -56,6 +57,7 @@ export const createUser = async (req, res) => {
         finalWorkingDays.push({ userId: user.id, ...dayObj });
       });
 
+      // create user working days
       const workingTimes = await prisma.workingTimes.createMany({
         data: finalWorkingDays,
       });
@@ -95,7 +97,7 @@ export const loginUser = async (req, res) => {
 
     bcrypt.genSalt(saltRounds, async (err, salt) => {
       if (err) {
-        console.log("Salt generation error:", err);
+        console.error("Salt generation error:", err);
         return res
           .status(500)
           .json({ success: false, message: "Internal server error" });
@@ -103,16 +105,17 @@ export const loginUser = async (req, res) => {
 
       bcrypt.hash(randomCode, salt, async (err, hash) => {
         if (err) {
-          console.log("Hashing error:", err);
+          console.error("Hashing error:", err);
           return res.status(500).json({
             success: false,
             message: "Internal server error",
           });
         }
 
+        // send random code to client mail using sendgrid
         const msg = {
-          to: email, // Change to your recipient
-          from: "aariall73@gmail.com", // Change to your verified sender
+          to: email,
+          from: "aariall73@gmail.com",
           subject: "Your verification code from Queue Manager",
           html: `<strong>Your verification code from Queue Manager is ${randomCode}.</strong>`,
         };
@@ -156,7 +159,7 @@ export const verifyLoginCode = async (req, res) => {
   const { email, code } = req.body;
 
   try {
-    // Fetch user
+    // Fetch user by email
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -167,6 +170,7 @@ export const verifyLoginCode = async (req, res) => {
         .json({ success: false, message: "Invalid email or code" });
     }
 
+    // check if code is valid
     const isCodeValid = await bcrypt.compare(code, user.verificationCode);
 
     if (!isCodeValid) {
@@ -202,6 +206,7 @@ export const getUserPersonalData = async (req, res) => {
   const { id } = req.query;
 
   try {
+    // get user personal data by user id
     const user = await prisma.user.findUnique({ where: { id: +id } });
 
     if (!user)
@@ -232,6 +237,7 @@ export const getUserWorkingDays = async (req, res) => {
   const { id } = req.query;
 
   try {
+    // get user working days by user id
     const workingDays = await prisma.workingTimes.findMany({
       where: { userId: +id },
     });
@@ -253,10 +259,12 @@ export const getUserWorkingDays = async (req, res) => {
 export const updateUserData = async (req, res) => {
   const { id } = req.body;
   let keyLabel = "";
+
   Object.keys(req.body).forEach((key) => {
     if (key !== "id") keyLabel = key;
   });
 
+  // update user data by user id
   try {
     const user = await prisma.user.update({
       where: { id: +id },
@@ -293,6 +301,7 @@ export const updateUserData = async (req, res) => {
 export const updateUserWorkingDays = async (req, res) => {
   const { id, opening, closing } = req.body;
 
+  // update user working days by working day id
   try {
     const workingDay = await prisma.workingTimes.update({
       where: {
@@ -322,6 +331,7 @@ export const updateUserWorkingDays = async (req, res) => {
 export const deleteUserWorkingDay = async (req, res) => {
   const { id } = req.query;
 
+  // delete user working day by working day id
   try {
     const response = await prisma.workingTimes.delete({
       where: {
@@ -345,6 +355,7 @@ export const deleteUserWorkingDay = async (req, res) => {
 };
 
 export const addUserDayOfWork = async (req, res) => {
+  // add user working day
   try {
     const response = await prisma.workingTimes.create({
       data: req.body,
@@ -375,7 +386,7 @@ export const sendCodeToClient = async (req, res) => {
 
     bcrypt.genSalt(saltRounds, async (err, salt) => {
       if (err) {
-        console.log("Salt generation error:", err);
+        console.error("Salt generation error:", err);
         return res
           .status(500)
           .json({ success: false, message: "Internal server error" });
@@ -383,16 +394,17 @@ export const sendCodeToClient = async (req, res) => {
 
       bcrypt.hash(randomCode, salt, async (err, hash) => {
         if (err) {
-          console.log("Hashing error:", err);
+          console.error("Hashing error:", err);
           return res.status(500).json({
             success: false,
             message: "Internal server error",
           });
         }
 
+        // send random code to client mail using sendgrid
         const msg = {
-          to: email, // Change to your recipient
-          from: "aariall73@gmail.com", // Change to your verified sender
+          to: email,
+          from: "aariall73@gmail.com",
           subject: "Your verification code from Queue Manager",
           html: `<strong>Your verification code from Queue Manager is ${randomCode}.</strong>`,
         };
@@ -436,7 +448,7 @@ export const verifyClientLoginCode = async (req, res) => {
   const { clientEmail, verificationCode } = req.body;
 
   try {
-    // Fetch client
+    // Fetch client by client id
     const client = await prisma.client.findUnique({
       where: { clientEmail },
     });
@@ -447,6 +459,7 @@ export const verifyClientLoginCode = async (req, res) => {
         .json({ success: false, message: "Invalid email or code" });
     }
 
+    // check if code is valid
     const isCodeValid = await bcrypt.compare(
       verificationCode,
       client.verificationCode
@@ -463,6 +476,7 @@ export const verifyClientLoginCode = async (req, res) => {
         .json({ success: false, message: "Code has expired" });
     }
 
+    // Generate a JWT token after successful verification
     const token = jwt.sign(
       { id: client.id, email: clientEmail },
       process.env.JWT_SECRET,

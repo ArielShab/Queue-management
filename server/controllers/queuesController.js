@@ -19,9 +19,9 @@ export const getProviderQueuesByID = async (req, res) => {
   const selectedDateStart = new Date(`${year}-${month}-${dateDay}`);
   const selectedDateEnd = new Date(selectedDateStart);
   selectedDateEnd.setHours(23, 59, 59, 999);
-  // .toISOString()
 
   try {
+    // fetch queue duration from db by user id
     const { queueDuration } = await prisma.user.findUnique({
       where: {
         id: +userId,
@@ -31,6 +31,7 @@ export const getProviderQueuesByID = async (req, res) => {
       },
     });
 
+    // fetch working times of a specific day from db by user id
     const workingTimes = await prisma.workingTimes.findFirst({
       where: {
         AND: [{ userId: +userId }, { day: day }],
@@ -47,6 +48,7 @@ export const getProviderQueuesByID = async (req, res) => {
     // Get opening and closing hours for the selected day
     const { opening, closing } = workingTimes;
 
+    // fetch all booked queues of specific date from db
     const bookedQueues = await prisma.queue.findMany({
       where: {
         AND: [
@@ -61,13 +63,6 @@ export const getProviderQueuesByID = async (req, res) => {
       },
     });
 
-    // if (!opening || !closing) {
-    // 	return res.status(401).json({
-    // 		success: false,
-    // 		message: 'Error getting opening or closing time',
-    // 	});
-    // }
-
     // Calculate minutes between opening and closing and return all the queues time
     let [startHour, startMinute] = opening.trim().split(":").map(Number);
     let [endHour, endMinute] = closing.trim().split(":").map(Number);
@@ -77,6 +72,7 @@ export const getProviderQueuesByID = async (req, res) => {
 
     const availableQueues = [];
 
+    // separate all queues by user queue duration
     for (
       let currentMinutes = startInMinutes;
       currentMinutes < endInMinutes;
@@ -117,7 +113,7 @@ export const postClientQueueData = async (req, res) => {
 
     bcrypt.genSalt(saltRounds, async (err, salt) => {
       if (err) {
-        console.log("Salt generation error:", err);
+        console.error("Salt generation error:", err);
         return res
           .status(500)
           .json({ success: false, message: "Internal server error" });
@@ -125,16 +121,17 @@ export const postClientQueueData = async (req, res) => {
 
       bcrypt.hash(randomCode, salt, async (err, hash) => {
         if (err) {
-          console.log("Hashing error:", err);
+          console.error("Hashing error:", err);
           return res.status(500).json({
             success: false,
             message: "Internal server error",
           });
         }
 
+        // send random code to client mail using sendgrid
         const msg = {
-          to: clientEmail, // Change to your recipient
-          from: "aariall73@gmail.com", // Change to your verified sender
+          to: clientEmail,
+          from: "aariall73@gmail.com",
           subject: "Your verification code from Queue Manager",
           html: `<strong>Your verification code from Queue Manager is ${randomCode}.</strong>`,
         };
@@ -158,6 +155,7 @@ export const postClientQueueData = async (req, res) => {
         });
 
         if (!client) {
+          // create new client
           client = await prisma.client.create({
             data: {
               clientName: req.body.clientName,
@@ -167,6 +165,7 @@ export const postClientQueueData = async (req, res) => {
             },
           });
         } else {
+          // update client queues by client id
           client = await prisma.client.update({
             where: {
               id: client.id,
@@ -186,6 +185,7 @@ export const postClientQueueData = async (req, res) => {
         modifiedTime.setMilliseconds(0);
         modifiedTime = modifiedTime.toISOString();
 
+        // get queue from db by time
         let queue = await prisma.queue.findFirst({
           where: {
             queueTime: modifiedTime,
@@ -193,6 +193,7 @@ export const postClientQueueData = async (req, res) => {
           },
         });
 
+        // check if queue exists and update it
         if (queue) {
           const newQueue = await prisma.queue.update({
             where: {
@@ -213,6 +214,7 @@ export const postClientQueueData = async (req, res) => {
             });
           }
         } else {
+          // create new queue if doesnt exist
           queue = await prisma.queue.create({
             data: {
               queueTime: modifiedTime,
@@ -252,7 +254,7 @@ export const verifyClientQueueCode = async (req, res) => {
   modifiedTime = modifiedTime.toISOString();
 
   try {
-    // Fetch user queue
+    // Fetch user queue by user id
     const queue = await prisma.queue.findFirst({
       where: { queueTime: modifiedTime, userId },
     });
@@ -282,6 +284,7 @@ export const verifyClientQueueCode = async (req, res) => {
         .json({ success: false, message: "Code has expired" });
     }
 
+    // update queue is code is valid
     const updatedQueue = await prisma.queue.update({
       where: { id: queue.id },
       data: {
@@ -309,6 +312,7 @@ export const verifyClientQueueCode = async (req, res) => {
 export const getBookedQueues = async (req, res) => {
   const { id } = req.query;
 
+  // get booked queues by user id
   try {
     const queues = await prisma.queue.findMany({
       where: {
@@ -323,6 +327,7 @@ export const getBookedQueues = async (req, res) => {
       });
     }
 
+    // get queue's client data
     const queueDetails = await Promise.all(
       queues.map(async (queue) => {
         // get queue client data
@@ -380,6 +385,7 @@ export const getBookedQueues = async (req, res) => {
 export const deleteQueueById = async (req, res) => {
   const { id } = req.query;
 
+  // delete queue by queue id
   try {
     const deletedQueue = await prisma.queue.delete({ where: { id: +id } });
 
@@ -397,21 +403,10 @@ export const deleteQueueById = async (req, res) => {
   }
 };
 
-// const clientQueues = await prisma.queue.findMany({
-//   where: { AND: [{ clientId: client.id }, { queueApproved: true }] },
-// });
-
-// const pastQueues = [];
-// const futureQueues = [];
-
-// clientQueues.forEach((queue) => {
-//   if (dayjs(queue.queueTime).isAfter(dayjs())) futureQueues.push(queue);
-//   else pastQueues.push(queue);
-// });
-
 export const getClientBookedQueues = async (req, res) => {
   const { id } = req.query;
 
+  // get client queueus by client id
   try {
     const queues = await prisma.queue.findMany({
       where: {
@@ -426,6 +421,7 @@ export const getClientBookedQueues = async (req, res) => {
       });
     }
 
+    // get all queue's data
     const queueDetails = await Promise.all(
       queues.map(async (queue) => {
         // get queue user data

@@ -31,10 +31,10 @@ function MyQueues() {
       if (response.success) {
         setStep(2);
         // Store the user's email in localStorage and a flag indicating they are at step 2
-        localStorage.setItem("step", "verification");
+        localStorage.setItem("clientStep", "verification");
         localStorage.setItem("clientEmail", email); // Store the email
         const expiresAt = Date.now() + 5 * 60 * 1000; // Store expiration time (5 minutes)
-        localStorage.setItem("codeExpiration", expiresAt);
+        localStorage.setItem("clientCodeExpiration", expiresAt);
         // Start the countdown timer
         const interval = setInterval(() => {
           setTimer((prev) => {
@@ -44,7 +44,7 @@ function MyQueues() {
         }, 1000);
       } else alertMessage("error", response.message);
     },
-    onError: (error, body, context) => {
+    onError: (error) => {
       console.error("Invalid email", error);
     },
   });
@@ -52,7 +52,6 @@ function MyQueues() {
   const verifyCodeMutation = useMutation({
     mutationFn: sendClientLoginCode,
     onSuccess: (data) => {
-      console.log("data", data);
       if (data.success) {
         localStorage.removeItem("step");
         localStorage.removeItem("clientEmail");
@@ -71,6 +70,7 @@ function MyQueues() {
     },
   });
 
+  // fetch client queues by client id
   const { data: queues } = useQuery({
     queryKey: ["queues", loggedClient?.id],
     queryFn: fetchClientBookedQueues,
@@ -130,10 +130,6 @@ function MyQueues() {
     setQueuesToView(newQueueToView);
   };
 
-  // const resendCode = async () => {
-  // 	resendCodeMutation.mutate({ email });
-  // };
-
   useEffect(() => {
     // Check if user logged in
     const userToken = localStorage.getItem("token");
@@ -146,8 +142,8 @@ function MyQueues() {
     }
 
     // Check if the client is supposed to be on the verification code page
-    const step = localStorage.getItem("step");
-    const expiration = localStorage.getItem("codeExpiration");
+    const step = localStorage.getItem("clientStep");
+    const expiration = localStorage.getItem("clientCodeExpiration");
 
     if (step !== "verification" || !expiration) {
       // If not, redirect to step 1 (login page)

@@ -15,11 +15,12 @@ function Queues() {
   const { handleOpenDialog, handleDialogText, handleSetDialogFunction } =
     useContext(DialogContext);
 
+  // fetch user queues by user id
   const { data: queues } = useQuery({
     queryKey: ["queues", loggedUser.id],
     queryFn: fetchUserBookedQueues,
     onError: (error) => {
-      console.log("Could not get queues", error);
+      console.error("Could not get queues", error);
     },
   });
 
@@ -32,7 +33,7 @@ function Queues() {
       }
     },
     onError: (error) => {
-      console.log("error", error);
+      console.error("error", error);
     },
   });
 

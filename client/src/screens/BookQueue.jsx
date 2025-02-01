@@ -39,11 +39,11 @@ function BookQueue() {
   const [selectedTime, setSelectedTime] = useState("");
   const [formattingTime, setFormattingTime] = useState("");
   const [selectedService, setSelectedService] = useState("");
-  // const [selectedDayName, setSelectedDayName] = useState('');
   const [openEmailVerification, setOpenEmailVerification] = useState(false);
   const [emailVerificationStep, setEmailVerificationStep] = useState(true);
   const [timer, setTimer] = useState(300);
 
+  // fetch booked queues by user id
   const { data: allQueues } = useQuery({
     queryKey: [
       "queues",
@@ -54,20 +54,21 @@ function BookQueue() {
       },
     ],
     queryFn: fetchUserQueuesTimes,
-    // enabled: selectedDate !== null,
     onError: (error) => {
-      console.log("Couldn't get queues", error);
+      console.error("Couldn't get queues", error);
     },
   });
 
+  // fetch user personal data by user id
   const { data: user } = useQuery({
     queryKey: ["user", providerId],
     queryFn: getUserPersonalData,
     onError: (error) => {
-      console.log("Couldn't get user data", error);
+      console.error("Couldn't get user data", error);
     },
   });
 
+  // fetch user services by user id
   const {
     data: services,
     isLoadingServices,
@@ -77,7 +78,7 @@ function BookQueue() {
     queryKey: ["services", providerId],
     queryFn: getUserServices,
     onError: (error) => {
-      console.log("Couldn't get services", error);
+      console.error("Couldn't get services", error);
     },
   });
 
