@@ -60,8 +60,9 @@ function BookQueue() {
     isError: isProviderError,
     error: providerError,
   } = useQuery({
-    queryKey: ['provider', String(providerId)],
-    queryFn: fetchProviderData,
+    queryKey: ['provider', Number(providerId)],
+    queryFn: () => fetchProviderData(Number(providerId)),
+    enabled: !!providerId,
   });
 
   // fetch provider services by provider id
@@ -71,8 +72,9 @@ function BookQueue() {
     isError: isServicesError,
     error: servicesError,
   } = useQuery({
-    queryKey: ['services', String(providerId)],
-    queryFn: getUserServices,
+    queryKey: ['services', Number(providerId)],
+    queryFn: () => getUserServices(Number(providerId)),
+    enabled: !!providerId,
   });
 
   // fetch available queues by provider id
@@ -82,15 +84,13 @@ function BookQueue() {
     isError: isQueuesError,
     error: queuesError,
   } = useQuery({
-    queryKey: [
-      'queues',
-      {
-        providerId,
+    queryKey: ['queues'],
+    queryFn: () =>
+      fetchUserQueuesTimes({
+        providerId: Number(providerId),
         selectedDayName: days[selectedDate.day()],
         selectedDate: dayjs(selectedDate).format('DD/MM/YYYY'),
-      },
-    ],
-    queryFn: fetchUserQueuesTimes,
+      }),
   });
 
   // send verify queue code to user email

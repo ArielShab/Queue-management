@@ -18,20 +18,12 @@ export const verifyCode = async (body: {
   return await fetchPost(`/users/verify-code`, body);
 };
 
-export const getUserPersonalData = async ({
-  queryKey,
-}: {
-  queryKey: Array<number | string>;
-}) => {
-  return await fetchGet(`/users/get-user-personal-data?id=${+queryKey[1]}`);
+export const getUserPersonalData = async (id: number) => {
+  return await fetchGet(`/users/get-user-personal-data?id=${id}`);
 };
 
-export const getUserWorkingDays = async ({
-  queryKey,
-}: {
-  queryKey: Array<string | number>;
-}) => {
-  return await fetchGet(`/users/get-working-days?id=${+queryKey[1]}`);
+export const getUserWorkingDays = async (id: number) => {
+  return await fetchGet(`/users/get-working-days?id=${id}`);
 };
 
 export const updateUserDataById = async (body: {

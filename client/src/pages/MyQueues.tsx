@@ -31,7 +31,7 @@ function MyQueues() {
     error,
   } = useQuery({
     queryKey: ['queues', loggedClient?.id, true],
-    queryFn: fetchBookedQueues,
+    queryFn: () => fetchBookedQueues(+loggedClient?.id, true),
     enabled: !!loggedClient,
   });
 

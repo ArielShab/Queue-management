@@ -39,7 +39,7 @@ function Services() {
     error,
   } = useQuery({
     queryKey: ['services', loggedUser?.id],
-    queryFn: getUserServices,
+    queryFn: () => getUserServices(+loggedUser?.id),
     enabled: !!loggedUser?.id,
   });
 

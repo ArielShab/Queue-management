@@ -1,11 +1,7 @@
 import { fetchDelete, fetchGet, fetchPost, fetchPut } from './index';
 
-export const getUserServices = async ({
-  queryKey,
-}: {
-  queryKey: Array<number | string>;
-}) => {
-  return await fetchGet(`/services/get-user-services?id=${+queryKey[1]}`);
+export const getUserServices = async (id: number) => {
+  return await fetchGet(`/services/get-user-services?id=${id}`);
 };
 
 export const createUserService = async (body: {

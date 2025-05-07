@@ -46,7 +46,7 @@ function PersonalData() {
     error: userError,
   } = useQuery({
     queryKey: ['user', loggedUser.id],
-    queryFn: getUserPersonalData,
+    queryFn: () => getUserPersonalData(+loggedUser.id),
     enabled: !!loggedUser.id,
   });
 
@@ -58,7 +58,7 @@ function PersonalData() {
     error: workingDaysError,
   } = useQuery({
     queryKey: ['workingDays', loggedUser.id],
-    queryFn: getUserWorkingDays,
+    queryFn: () => getUserWorkingDays(+loggedUser.id),
     enabled: !!loggedUser.id,
   });
 
